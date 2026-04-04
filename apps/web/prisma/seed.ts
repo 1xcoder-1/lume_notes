@@ -1,4 +1,4 @@
-import { PrismaClient } from "../generated/prisma/client";
+import { PrismaClient } from "@prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import bcrypt from "bcryptjs";
 
@@ -77,7 +77,6 @@ async function main() {
     },
   });
 
-  
   const acmeAdmin = await prisma.user.findUnique({
     where: { email: "admin@acme.test" },
   });
@@ -91,7 +90,6 @@ async function main() {
     where: { email: "user@globex.test" },
   });
 
-  
   if (acmeAdmin) {
     await prisma.note.upsert({
       where: { id: "acme-note-1" },

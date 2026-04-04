@@ -13,13 +13,11 @@ export default function CompletePage() {
     if (status === "loading") return;
 
     if (status === "authenticated" && session) {
-      
       const hasTenant = (session.user as any)?.tenantId;
 
       if (hasTenant) {
         router.push("/");
       } else {
-        
         router.push("/organization/setup");
       }
     } else {
