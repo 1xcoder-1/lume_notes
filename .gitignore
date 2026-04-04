@@ -37,3 +37,5 @@ npm-debug.log*
 
 /generated/prisma
 /apps/web/generated
+
+FEATURE_IDEAS.txt
