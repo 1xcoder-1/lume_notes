@@ -1,0 +1,51 @@
+{
+  "name": "lucide-note",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "build": "turbo build",
+    "commit": "cz",
+    "db:generate": "turbo db:generate",
+    "db:migrate": "turbo db:migrate",
+    "db:push": "turbo db:migrate:prod",
+    "db:reset": "turbo db:reset",
+    "db:seed": "turbo db:seed",
+    "db:setup": "turbo db:setup",
+    "db:studio": "turbo db:studio",
+    "dev": "turbo dev",
+    "format": "prettier --write .",
+    "lint": "turbo lint",
+    "prepare": "husky",
+    "test": "turbo test",
+    "test:integration": "turbo test:integration",
+    "test:unit": "turbo test:unit",
+    "test:watch": "turbo test:watch",
+    "typecheck": "turbo typecheck"
+  },
+  "config": {
+    "commitizen": {
+      "path": "cz-conventional-changelog"
+    }
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^20.3.1",
+    "@commitlint/config-conventional": "^20.4.1",
+    "@workspace/eslint-config": "workspace:*",
+    "@workspace/typescript-config": "workspace:*",
+    "commitizen": "^4.3.1",
+    "cz-conventional-changelog": "^3.3.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.7",
+    "prettier": "^3.8.1",
+    "prettier-plugin-tailwindcss": "^0.7.2",
+    "turbo": "^2.8.3",
+    "typescript": "5.9.3"
+  },
+  "packageManager": "pnpm@10.4.1",
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@tiptap/core": "^3.22.0"
+  }
+}
