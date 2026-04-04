@@ -19,7 +19,15 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@workspace/ui/components/select";
-import { FileText, FileCode, FileType, FileLineChart, Loader2, Palette, Type } from "lucide-react";
+import {
+  FileText,
+  FileCode,
+  FileType,
+  FileLineChart,
+  Loader2,
+  Palette,
+  Type,
+} from "lucide-react";
 import { toast } from "sonner";
 import { exportNote, type ExportFormat } from "@/lib/export-utils";
 
@@ -69,9 +77,10 @@ export function ExportModal({ open, onOpenChange, note }: ExportModalProps) {
   const [format, setFormat] = useState<ExportFormat>("pdf");
   const [includeStyles, setIncludeStyles] = useState(true);
   const [isExporting, setIsExporting] = useState(false);
-  
-  
-  const [pdfTheme, setPdfTheme] = useState<"modern" | "classic" | "minimal">("modern");
+
+  const [pdfTheme, setPdfTheme] = useState<"modern" | "classic" | "minimal">(
+    "modern"
+  );
   const [pdfAccentColor, setPdfAccentColor] = useState("#1a1a1a");
   const [pdfFontFamily, setPdfFontFamily] = useState("Helvetica");
 
@@ -83,11 +92,14 @@ export function ExportModal({ open, onOpenChange, note }: ExportModalProps) {
       await exportNote(note.content, note.title, {
         format,
         includeStyles,
-        pdfOptions: format === "pdf" ? {
-          theme: pdfTheme,
-          accentColor: pdfAccentColor,
-          fontFamily: pdfFontFamily,
-        } : undefined,
+        pdfOptions:
+          format === "pdf"
+            ? {
+                theme: pdfTheme,
+                accentColor: pdfAccentColor,
+                fontFamily: pdfFontFamily,
+              }
+            : undefined,
       });
       toast.success(`Note exported as ${format.toUpperCase()}`);
       onOpenChange(false);
@@ -163,13 +175,15 @@ export function ExportModal({ open, onOpenChange, note }: ExportModalProps) {
           {format === "pdf" && includeStyles && (
             <div className="space-y-4 border-t pt-4">
               <div className="flex items-center gap-2">
-                <Palette className="h-4 w-4 text-muted-foreground" />
+                <Palette className="text-muted-foreground h-4 w-4" />
                 <span className="text-sm font-medium">PDF Customization</span>
               </div>
-              
+
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="pdfTheme" className="text-xs">Theme</Label>
+                  <Label htmlFor="pdfTheme" className="text-xs">
+                    Theme
+                  </Label>
                   <Select
                     value={pdfTheme}
                     onValueChange={value => setPdfTheme(value as any)}
@@ -186,7 +200,9 @@ export function ExportModal({ open, onOpenChange, note }: ExportModalProps) {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="pdfFont" className="text-xs">Font</Label>
+                  <Label htmlFor="pdfFont" className="text-xs">
+                    Font
+                  </Label>
                   <Select
                     value={pdfFontFamily}
                     onValueChange={value => setPdfFontFamily(value)}
@@ -204,16 +220,20 @@ export function ExportModal({ open, onOpenChange, note }: ExportModalProps) {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="accentColor" className="text-xs">Accent Color</Label>
+                <Label htmlFor="accentColor" className="text-xs">
+                  Accent Color
+                </Label>
                 <div className="flex items-center gap-2">
                   <input
                     type="color"
                     id="accentColor"
                     value={pdfAccentColor}
-                    onChange={(e) => setPdfAccentColor(e.target.value)}
-                    className="h-8 w-12 rounded cursor-pointer bg-transparent"
+                    onChange={e => setPdfAccentColor(e.target.value)}
+                    className="h-8 w-12 cursor-pointer rounded bg-transparent"
                   />
-                  <span className="text-xs text-muted-foreground">{pdfAccentColor}</span>
+                  <span className="text-muted-foreground text-xs">
+                    {pdfAccentColor}
+                  </span>
                 </div>
               </div>
             </div>
@@ -224,8 +244,8 @@ export function ExportModal({ open, onOpenChange, note }: ExportModalProps) {
             <p className="text-muted-foreground text-xs">
               {format === "pdf" && (
                 <>
-                  PDF export will generate a high-fidelity document and
-                  download it directly to your device.
+                  PDF export will generate a high-fidelity document and download
+                  it directly to your device.
                 </>
               )}
               {format === "markdown" && (
@@ -245,8 +265,8 @@ export function ExportModal({ open, onOpenChange, note }: ExportModalProps) {
               )}
               {format === "word" && (
                 <>
-                  Word documents (.doc) provide a basic formatted document 
-                  that can be opened in Microsoft Word or Google Docs.
+                  Word documents (.doc) provide a basic formatted document that
+                  can be opened in Microsoft Word or Google Docs.
                 </>
               )}
             </p>

@@ -38,7 +38,7 @@ function CommandDialog({ children, ...props }: DialogProps) {
         <DialogDescription>Search for commands and actions</DialogDescription>
       </DialogHeader>
       <DialogContent className="overflow-hidden p-0">
-        <Command className="[&_[data-slot=command-input-wrapper]_svg]:size-5 [&_[data-slot=command-input-wrapper]]:h-12 [&_[data-slot=command-input]]:h-12 [&_[data-slot=command-item]_svg]:size-5 [&_[data-slot=command-item]]:px-2 [&_[data-slot=command-group-heading]]:px-2 [&_[data-slot=command-group]]:px-2 [&_[data-slot=command-list]]:max-h-[300px] sm:[&_[data-slot=command-list]]:max-h-[400px]">
+        <Command className="[&_[data-slot=command-group-heading]]:px-2 [&_[data-slot=command-group]]:px-2 [&_[data-slot=command-input-wrapper]]:h-12 [&_[data-slot=command-input-wrapper]_svg]:size-5 [&_[data-slot=command-input]]:h-12 [&_[data-slot=command-item]]:px-2 [&_[data-slot=command-item]_svg]:size-5 [&_[data-slot=command-list]]:max-h-[300px] sm:[&_[data-slot=command-list]]:max-h-[400px]">
           {children}
         </Command>
       </DialogContent>
@@ -75,7 +75,10 @@ function CommandList({
   return (
     <CommandPrimitive.List
       data-slot="command-list"
-      className={cn("max-h-[300px] overflow-y-auto overflow-x-hidden", className)}
+      className={cn(
+        "max-h-[300px] overflow-x-hidden overflow-y-auto",
+        className
+      )}
       {...props}
     />
   );
@@ -116,7 +119,7 @@ function CommandSeparator({
   return (
     <CommandPrimitive.Separator
       data-slot="command-separator"
-      className={cn("-mx-1 h-px bg-border", className)}
+      className={cn("bg-border -mx-1 h-px", className)}
       {...props}
     />
   );

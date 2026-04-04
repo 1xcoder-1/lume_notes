@@ -40,19 +40,22 @@ const stats = [
 
 const testimonials = [
   {
-    quote: "lume notes has revolutionized how our team collaborates. The real-time editing is so smooth.",
+    quote:
+      "lume notes has revolutionized how our team collaborates. The real-time editing is so smooth.",
     author: "Sarah Johnson",
     role: "Product Manager, TechCorp",
     avatar: "SJ",
   },
   {
-    quote: "The security features give us peace of mind. Our sensitive project notes are finally safe.",
+    quote:
+      "The security features give us peace of mind. Our sensitive project notes are finally safe.",
     author: "Mike Rodriguez",
     role: "CTO, StartupXYZ",
     avatar: "MR",
   },
   {
-    quote: "Productivity increased by 40% since we switched. The interface is just intuitive.",
+    quote:
+      "Productivity increased by 40% since we switched. The interface is just intuitive.",
     author: "Anna Liu",
     role: "Team Lead, DesignStudio",
     avatar: "AL",
@@ -62,15 +65,18 @@ const testimonials = [
 const faqs = [
   {
     question: "Is there a free trial?",
-    answer: "Yes! We offer a 14-day free trial for all new users. No credit card required to start.",
+    answer:
+      "Yes! We offer a 14-day free trial for all new users. No credit card required to start.",
   },
   {
     question: "How secure are my notes?",
-    answer: "We use enterprise-grade encryption for all your notes. Only you and authorized team members can access them.",
+    answer:
+      "We use enterprise-grade encryption for all your notes. Only you and authorized team members can access them.",
   },
   {
     question: "Can I collaborate in real-time?",
-    answer: "Absolutely! multiple people can edit the same note simultaneously with live cursors and history tracking.",
+    answer:
+      "Absolutely! multiple people can edit the same note simultaneously with live cursors and history tracking.",
   },
 ];
 
@@ -93,12 +99,12 @@ export default function LandingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-background text-foreground antialiased selection:bg-primary/30">
+    <div className="bg-background text-foreground selection:bg-primary/30 min-h-screen antialiased">
       {}
-      <div className="fixed inset-0 z-0 pointer-events-none opacity-[0.03]" />
-      
+      <div className="pointer-events-none fixed inset-0 z-0 opacity-[0.03]" />
+
       {}
-      <header className="sticky top-0 z-50 w-full border-b border-border/40 bg-background/60 backdrop-blur-md">
+      <header className="border-border/40 bg-background/60 sticky top-0 z-50 w-full border-b backdrop-blur-md">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
           <div className="flex items-center gap-2">
             <div className="relative h-8 w-8">
@@ -140,11 +146,14 @@ export default function LandingPage() {
                 >
                   {user?.tenantId ? "Dashboard" : "Setup Workspace"}
                 </Button>
-                
+
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" className="relative h-9 w-9 rounded-full p-0">
-                      <div className="bg-primary/10 relative flex h-9 w-9 items-center justify-center rounded-full border border-primary/20 overflow-hidden">
+                    <Button
+                      variant="ghost"
+                      className="relative h-9 w-9 rounded-full p-0"
+                    >
+                      <div className="bg-primary/10 border-primary/20 relative flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border">
                         {user?.image ? (
                           <Image
                             src={user.image}
@@ -159,13 +168,18 @@ export default function LandingPage() {
                       </div>
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-56 mt-2">
+                  <DropdownMenuContent align="end" className="mt-2 w-56">
                     <DropdownMenuLabel className="font-normal">
                       <div className="flex flex-col space-y-1">
                         <div className="flex items-center gap-2">
-                          <p className="text-sm font-medium leading-none">{user?.name || "User"}</p>
+                          <p className="text-sm leading-none font-medium">
+                            {user?.name || "User"}
+                          </p>
                           {user?.role && (
-                            <Badge variant="secondary" className="text-[10px] px-1 py-0 h-4 capitalize">
+                            <Badge
+                              variant="secondary"
+                              className="h-4 px-1 py-0 text-[10px] capitalize"
+                            >
                               {user.role}
                             </Badge>
                           )}
@@ -180,7 +194,7 @@ export default function LandingPage() {
                       Dashboard
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem 
+                    <DropdownMenuItem
                       onClick={() => signOut({ callbackUrl: "/" })}
                       className="text-destructive focus:text-destructive"
                     >
@@ -200,7 +214,7 @@ export default function LandingPage() {
         title={
           <span className="block">
             Organize Thoughts.{" "}
-            <span className="text-primary bg-gradient-to-r from-primary via-blue-400 to-purple-500 bg-clip-text text-transparent">
+            <span className="text-primary from-primary bg-gradient-to-r via-blue-400 to-purple-500 bg-clip-text text-transparent">
               Collaborate.
             </span>
           </span>
@@ -209,16 +223,20 @@ export default function LandingPage() {
       >
         <Button
           size="lg"
-          className="rounded-full bg-primary px-8 py-6 text-lg font-semibold text-primary-foreground shadow-2xl transition-all hover:scale-105"
+          className="bg-primary text-primary-foreground rounded-full px-8 py-6 text-lg font-semibold shadow-2xl transition-all hover:scale-105"
           onClick={handleCTA}
         >
-          {isAuthenticated ? (user?.tenantId ? "Resume Working" : "Complete Setup") : "Start Coding for Free"}
+          {isAuthenticated
+            ? user?.tenantId
+              ? "Resume Working"
+              : "Complete Setup"
+            : "Start Coding for Free"}
           <ArrowRight className="ml-2 h-5 w-5" />
         </Button>
         <Button
           size="lg"
           variant="outline"
-          className="rounded-full border-2 px-8 py-6 text-lg transition-all hover:bg-muted"
+          className="hover:bg-muted rounded-full border-2 px-8 py-6 text-lg transition-all"
           onClick={() => router.push("/auth/login")}
         >
           Watch Demo
@@ -237,8 +255,10 @@ export default function LandingPage() {
               transition={{ delay: i * 0.1 }}
               className="text-center"
             >
-              <h3 className="text-4xl font-extrabold text-foreground md:text-5xl">{stat.value}</h3>
-              <p className="mt-2 text-muted-foreground">{stat.label}</p>
+              <h3 className="text-foreground text-4xl font-extrabold md:text-5xl">
+                {stat.value}
+              </h3>
+              <p className="text-muted-foreground mt-2">{stat.label}</p>
             </motion.div>
           ))}
         </div>
@@ -247,10 +267,15 @@ export default function LandingPage() {
       {}
       <section className="container mx-auto px-4 py-24">
         <div className="mb-16 text-center">
-          <Badge variant="outline" className="mb-4 rounded-full border-primary/30 text-primary px-4 py-1">
+          <Badge
+            variant="outline"
+            className="border-primary/30 text-primary mb-4 rounded-full px-4 py-1"
+          >
             Features
           </Badge>
-          <h2 className="text-3xl font-bold tracking-tight md:text-5xl">Everything you need to scale</h2>
+          <h2 className="text-3xl font-bold tracking-tight md:text-5xl">
+            Everything you need to scale
+          </h2>
         </div>
         <div className="grid gap-6 md:grid-cols-3">
           <FeatureItem
@@ -275,9 +300,11 @@ export default function LandingPage() {
       </section>
 
       {}
-      <section className="container mx-auto px-4 py-24 overflow-hidden">
+      <section className="container mx-auto overflow-hidden px-4 py-24">
         <div className="mb-16 text-center">
-          <h2 className="text-3xl font-bold md:text-5xl">Trusted by Creators</h2>
+          <h2 className="text-3xl font-bold md:text-5xl">
+            Trusted by Creators
+          </h2>
         </div>
         <div className="grid gap-8 md:grid-cols-3">
           {testimonials.map((t, i) => (
@@ -289,7 +316,9 @@ export default function LandingPage() {
       {}
       <section className="mx-auto max-w-4xl px-4 py-24">
         <div className="mb-16 text-center">
-          <h2 className="text-3xl font-bold md:text-5xl leading-tight">Frequently Asked Questions</h2>
+          <h2 className="text-3xl leading-tight font-bold md:text-5xl">
+            Frequently Asked Questions
+          </h2>
         </div>
         <div className="flex flex-col gap-2">
           {faqs.map((f, i) => (
@@ -300,13 +329,14 @@ export default function LandingPage() {
 
       {}
       <section className="container mx-auto px-4 py-32">
-        <div className="relative overflow-hidden rounded-[2.5rem] bg-foreground px-8 py-20 text-center text-background md:px-16">
-          <div className="absolute inset-0 bg-gradient-to-tr from-primary/20 via-transparent to-purple-500/20 pointer-events-none" />
+        <div className="bg-foreground text-background relative overflow-hidden rounded-[2.5rem] px-8 py-20 text-center md:px-16">
+          <div className="from-primary/20 pointer-events-none absolute inset-0 bg-gradient-to-tr via-transparent to-purple-500/20" />
           <h2 className="relative z-10 text-4xl font-bold md:text-6xl">
             Start organizing your <br /> ideas today.
           </h2>
-          <p className="relative z-10 mt-8 text-lg opacity-80 max-w-2xl mx-auto">
-            Join the elite teams of product designers, developers, and writers who use Lume Notes every day to ship faster.
+          <p className="relative z-10 mx-auto mt-8 max-w-2xl text-lg opacity-80">
+            Join the elite teams of product designers, developers, and writers
+            who use Lume Notes every day to ship faster.
           </p>
           <div className="relative z-10 mt-12 flex flex-col justify-center gap-4 sm:flex-row">
             <Button
@@ -321,19 +351,29 @@ export default function LandingPage() {
       </section>
 
       {}
-      <footer className="border-t border-border/50 py-16">
+      <footer className="border-border/50 border-t py-16">
         <div className="container mx-auto px-4">
           <div className="flex flex-col items-center justify-between gap-8 md:flex-row">
             <div className="flex items-center gap-2">
               <span className="text-2xl font-bold">lume notes</span>
             </div>
-            <div className="flex gap-8 text-sm text-muted-foreground">
-              <a href="#" className="hover:text-foreground">Product</a>
-              <a href="#" className="hover:text-foreground">Pricing</a>
-              <a href="#" className="hover:text-foreground">Blog</a>
-              <a href="#" className="hover:text-foreground">Terms</a>
+            <div className="text-muted-foreground flex gap-8 text-sm">
+              <a href="#" className="hover:text-foreground">
+                Product
+              </a>
+              <a href="#" className="hover:text-foreground">
+                Pricing
+              </a>
+              <a href="#" className="hover:text-foreground">
+                Blog
+              </a>
+              <a href="#" className="hover:text-foreground">
+                Terms
+              </a>
             </div>
-            <p className="text-sm text-muted-foreground">© 2024 Lume Notes Inc.</p>
+            <p className="text-muted-foreground text-sm">
+              © 2024 Lume Notes Inc.
+            </p>
           </div>
         </div>
       </footer>
@@ -341,20 +381,32 @@ export default function LandingPage() {
   );
 }
 
-function FeatureItem({ icon, title, description, delay }: { icon: any, title: string, description: string, delay: number }) {
+function FeatureItem({
+  icon,
+  title,
+  description,
+  delay,
+}: {
+  icon: any;
+  title: string;
+  description: string;
+  delay: number;
+}) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 30 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ delay }}
-      className="group p-8 rounded-3xl border border-border/50 bg-card/50 hover:bg-primary/5 transition-all duration-300 hover:border-primary/20"
+      className="group border-border/50 bg-card/50 hover:bg-primary/5 hover:border-primary/20 rounded-3xl border p-8 transition-all duration-300"
     >
-      <div className="h-12 w-12 rounded-xl bg-primary/10 flex items-center justify-center text-primary group-hover:scale-110 transition-transform">
+      <div className="bg-primary/10 text-primary flex h-12 w-12 items-center justify-center rounded-xl transition-transform group-hover:scale-110">
         {icon}
       </div>
       <h3 className="mt-6 text-2xl font-bold">{title}</h3>
-      <p className="mt-3 text-muted-foreground text-lg leading-relaxed">{description}</p>
+      <p className="text-muted-foreground mt-3 text-lg leading-relaxed">
+        {description}
+      </p>
     </motion.div>
   );
 }

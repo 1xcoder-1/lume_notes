@@ -1,12 +1,12 @@
-import { MetadataRoute } from 'next'
- 
+import { MetadataRoute } from "next";
+
 export default function robots(): MetadataRoute.Robots {
   return {
     rules: {
-      userAgent: '*',
-      allow: '/',
-      disallow: ['/api/', '/auth/'],
+      userAgent: "*",
+      allow: "/",
+      disallow: ["/api/", "/auth/"],
     },
-    sitemap: 'https://lumenotes.com/sitemap.xml',
-  }
+    sitemap: "https://lumenotes.com/sitemap.xml",
+  };
 }

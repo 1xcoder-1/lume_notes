@@ -154,7 +154,7 @@
     height: 1.4em; /* Slightly increased height */
     display: inline-block;
     vertical-align: middle;
-    
+
     /* Global Fade-Out Effect: Automatically hide cursor when user stops typing */
     animation: cursorFade 4s ease-in-out forwards;
     transition: opacity 0.3s ease;
@@ -176,20 +176,25 @@
     opacity: 0.95;
     pointer-events: none;
     box-shadow: 0 4px 12px rgba(59, 130, 246, 0.4);
-    
+
     /* Sync Label Fade-Out */
     animation: cursorFade 4s ease-in-out forwards;
   }
 
   @keyframes cursorFade {
-    0% { opacity: 1; }
-    70% { opacity: 1; }  /* Stay visible for ~3 seconds of typing/movement */
-    100% { opacity: 0; }  /* Gradually vanish when idle */
+    0% {
+      opacity: 1;
+    }
+    70% {
+      opacity: 1;
+    } /* Stay visible for ~3 seconds of typing/movement */
+    100% {
+      opacity: 0;
+    } /* Gradually vanish when idle */
   }
 
   .collaboration-cursor__caret:hover .collaboration-cursor__label {
     opacity: 1;
     animation: none; /* Keep label visible on hover */
   }
-
-}
+}

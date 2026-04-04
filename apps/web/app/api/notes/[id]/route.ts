@@ -49,7 +49,6 @@ export async function PUT(
     const { id } = await params;
     const body = await request.json();
 
-    
     const validationResult = updateNoteSchema.safeParse(body);
     if (!validationResult.success) {
       const errorMessage =
@@ -58,7 +57,7 @@ export async function PUT(
     }
 
     const { title, content, tags, folder, folderId } = validationResult.data;
-    
+
     const [note, tenant] = await Promise.all([
       prisma.note.findFirst({
         where: {
@@ -76,7 +75,10 @@ export async function PUT(
     }
 
     if (session.user.role === "member" && !(tenant as any).members_can_edit) {
-      return NextResponse.json({ error: "Access denied: Members cannot edit notes" }, { status: 403 });
+      return NextResponse.json(
+        { error: "Access denied: Members cannot edit notes" },
+        { status: 403 }
+      );
     }
 
     const updatedNote = await prisma.note.update({

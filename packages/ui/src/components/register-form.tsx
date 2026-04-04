@@ -54,7 +54,7 @@ export function RegisterForm({
           className="mx-auto h-12 w-12"
         />
         <h1 className="text-2xl font-bold">Create your account</h1>
-        <p className="text-muted-foreground text-balance text-sm">
+        <p className="text-muted-foreground text-sm text-balance">
           Enter your details below to create your account
         </p>
       </div>

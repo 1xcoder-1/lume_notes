@@ -1,8 +1,6 @@
-
 import { pdf } from "@react-pdf/renderer";
 import React from "react";
 import { PdfDocument } from "@/components/pdf-document";
-
 
 function jsonToPlainText(content: any): string {
   if (!content || !content.content) return "";
@@ -58,7 +56,6 @@ function jsonToPlainText(content: any): string {
 
   return processNode(content).trim();
 }
-
 
 export function jsonToMarkdown(content: any, title?: string): string {
   if (!content || !content.content) return title ? `# ${title}\n\n` : "";
@@ -182,7 +179,6 @@ export function jsonToMarkdown(content: any, title?: string): string {
   markdown += processNode(content);
   return markdown.trim();
 }
-
 
 export function jsonToHtml(
   content: any,
@@ -401,13 +397,13 @@ function getHtmlWrapper(
 </html>`;
 }
 
-
 export function downloadFile(
   content: string | Blob,
   filename: string,
   mimeType: string
 ) {
-  const blob = content instanceof Blob ? content : new Blob([content], { type: mimeType });
+  const blob =
+    content instanceof Blob ? content : new Blob([content], { type: mimeType });
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
@@ -435,10 +431,8 @@ export function exportToHtml(
 }
 
 export function exportToWord(content: any, title: string) {
-  
-  
   const html = jsonToHtml(content, title, true);
-  
+
   const wordHtml = `
     <html xmlns:o='urn:schemas-microsoft-com:office:office' 
           xmlns:w='urn:schemas-microsoft-com:office:word' 
@@ -473,7 +467,7 @@ export function exportToWord(content: any, title: string) {
     </body>
     </html>
   `;
-  
+
   const filename = sanitizeFilename(title) + ".doc";
   downloadFile(wordHtml, filename, "application/msword");
 }
@@ -484,18 +478,16 @@ export async function exportToPdf(
   pdfOptions?: PdfOptions
 ) {
   try {
-    
     const blob = await pdf(
-      React.createElement(PdfDocument as any, { 
-        title, 
+      React.createElement(PdfDocument as any, {
+        title,
         content,
         theme: pdfOptions?.theme,
         accentColor: pdfOptions?.accentColor,
-        fontFamily: pdfOptions?.fontFamily
+        fontFamily: pdfOptions?.fontFamily,
       })
     ).toBlob();
-    
-    
+
     const filename = sanitizeFilename(title) + ".pdf";
     const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
@@ -507,10 +499,11 @@ export async function exportToPdf(
     URL.revokeObjectURL(url);
   } catch (error) {
     console.error("PDF generation failed:", error);
-    throw new Error("Failed to generate PDF. Please check your browser's console.");
+    throw new Error(
+      "Failed to generate PDF. Please check your browser's console."
+    );
   }
 }
-
 
 function sanitizeFilename(filename: string): string {
   return (
@@ -520,7 +513,6 @@ function sanitizeFilename(filename: string): string {
       .substring(0, 100) || "untitled"
   );
 }
-
 
 export type ExportFormat = "pdf" | "markdown" | "html" | "word";
 

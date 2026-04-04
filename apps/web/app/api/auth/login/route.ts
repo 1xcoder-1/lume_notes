@@ -5,7 +5,6 @@ import { loginSchema } from "@/lib/validations";
 import { authLimiter, rateLimitResponse } from "@/lib/rate-limit";
 
 export async function POST(request: NextRequest) {
-  
   const ip = request.headers.get("x-forwarded-for") || "127.0.0.1";
   if (!(await authLimiter.check(5, ip))) {
     return rateLimitResponse();
@@ -14,7 +13,6 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
-    
     const validationResult = loginSchema.safeParse(body);
     if (!validationResult.success) {
       return NextResponse.json(
@@ -25,7 +23,6 @@ export async function POST(request: NextRequest) {
 
     const { email, password } = validationResult.data;
 
-    
     const user = await prisma.user.findUnique({
       where: { email },
       include: { tenant: true },
@@ -38,7 +35,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    
     if (!user.emailVerified) {
       return NextResponse.json(
         {
@@ -50,7 +46,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    
     if (!user.password_hash) {
       return NextResponse.json(
         { error: "Invalid email or password" },
@@ -58,7 +53,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    
     const isValidPassword = await bcrypt.compare(password, user.password_hash);
 
     if (!isValidPassword) {
@@ -68,7 +62,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    
     return NextResponse.json({
       user: {
         id: user.id,

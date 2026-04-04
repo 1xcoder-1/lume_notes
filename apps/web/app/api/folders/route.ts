@@ -34,17 +34,26 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
     const result = createFolderSchema.safeParse(body);
-    
+
     if (!result.success) {
-      return NextResponse.json({ error: result.error.issues[0]?.message || "Invalid folder name" }, { status: 400 });
+      return NextResponse.json(
+        { error: result.error.issues[0]?.message || "Invalid folder name" },
+        { status: 400 }
+      );
     }
 
     const tenant = await prisma.tenant.findUnique({
       where: { id: session.user.tenantId },
     });
 
-    if (session.user.role === "member" && !(tenant as any)?.members_can_create) {
-      return NextResponse.json({ error: "Access denied: Members cannot create folders" }, { status: 403 });
+    if (
+      session.user.role === "member" &&
+      !(tenant as any)?.members_can_create
+    ) {
+      return NextResponse.json(
+        { error: "Access denied: Members cannot create folders" },
+        { status: 403 }
+      );
     }
 
     const { name, parentId } = result.data;

@@ -40,7 +40,7 @@ export function ResetPasswordForm({
           className="mx-auto h-12 w-12"
         />
         <h1 className="text-2xl font-bold">Set new password</h1>
-        <p className="text-muted-foreground text-balance text-sm">
+        <p className="text-muted-foreground text-sm text-balance">
           Enter your new password below
         </p>
       </div>

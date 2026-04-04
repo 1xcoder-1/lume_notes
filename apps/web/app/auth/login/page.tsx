@@ -18,7 +18,6 @@ export default function LoginPage() {
   const router = useRouter();
   const { data: session, status } = useSession();
 
-  
   useEffect(() => {
     if (status === "loading") return;
 
@@ -37,7 +36,6 @@ export default function LoginPage() {
     setLoading(true);
     setError("");
 
-    
     const validationResult = loginSchema.safeParse({ email, password });
     if (!validationResult.success) {
       setError(
@@ -50,11 +48,9 @@ export default function LoginPage() {
     const validatedData = validationResult.data;
 
     try {
-      
       const response = await axios.post("/api/auth/login", validatedData);
 
       if (response.data.user) {
-        
         const result = await signIn("credentials", {
           email: validatedData.email,
           password: validatedData.password,
@@ -62,9 +58,7 @@ export default function LoginPage() {
         });
 
         if (result?.ok) {
-          
           await router.refresh();
-          
         } else {
           setError("Failed to create session");
           setLoading(false);

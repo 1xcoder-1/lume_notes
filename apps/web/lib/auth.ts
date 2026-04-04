@@ -16,7 +16,7 @@ const config: NextAuthConfig = {
         data: {
           ...rest,
           first_name: name || null,
-          role: "admin", 
+          role: "admin",
         },
       });
     },
@@ -28,11 +28,9 @@ const config: NextAuthConfig = {
     GitHub({
       clientId: process.env.GITHUB_CLIENT_ID!,
       clientSecret: process.env.GITHUB_CLIENT_SECRET!,
-      
-      
-      
+
       allowDangerousEmailAccountLinking: true,
-      
+
       authorization: {
         params: { scope: "read:user user:email" },
       },
@@ -99,18 +97,14 @@ const config: NextAuthConfig = {
   },
   callbacks: {
     async signIn({ user, account, profile }) {
-      
-      
       try {
         if (account?.provider && user?.email) {
-          
           const existingUser = await prisma.user.findUnique({
             where: { email: user.email },
             include: { accounts: true },
           });
 
           if (existingUser) {
-            
             const alreadyLinked = existingUser.accounts.find(
               a =>
                 a.provider === account.provider &&
@@ -143,12 +137,11 @@ const config: NextAuthConfig = {
         return true;
       } catch (err) {
         console.error("signIn callback error:", err);
-        
+
         return true;
       }
     },
     async session({ session, token }) {
-      
       if (token) {
         session.user = {
           id: token.id as string,
@@ -169,14 +162,13 @@ const config: NextAuthConfig = {
         token.name = user.name;
         token.email = user.email;
         token.picture = user.image;
-        
+
         if ((user as any).tenantId !== undefined) {
           (token as any).tenantId = (user as any).tenantId;
           (token as any).tenantSlug = (user as any).tenantSlug;
           (token as any).tenantPlan = (user as any).tenantPlan;
           (token as any).role = (user as any).role;
         } else {
-          
           const dbUser = await prisma.user.findUnique({
             where: { id: user.id },
             include: { tenant: true },
@@ -191,7 +183,6 @@ const config: NextAuthConfig = {
         }
       }
 
-      
       if (trigger === "update" && token.id) {
         const dbUser = await prisma.user.findUnique({
           where: { id: token.id as string },

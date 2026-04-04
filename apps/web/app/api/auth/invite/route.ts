@@ -24,7 +24,6 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    
     if (!(await authLimiter.check(5, session.user.id))) {
       return rateLimitResponse();
     }
@@ -47,7 +46,6 @@ export async function POST(request: NextRequest) {
 
     const { email, role, password } = validation.data;
 
-    
     const existingUser = await prisma.user.findUnique({
       where: { email },
     });
@@ -59,13 +57,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    
     const userPassword = password || generateRandomPassword();
     const hashedPassword = await bcrypt.hash(userPassword, 10);
 
-    
     const verificationToken = randomBytes(32).toString("hex");
-    const tokenExpires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000); 
+    const tokenExpires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
 
     const newUser = await prisma.user.create({
       data: {
@@ -73,7 +69,7 @@ export async function POST(request: NextRequest) {
         password_hash: hashedPassword,
         role: role as "admin" | "member",
         tenant_id: session.user.tenantId,
-        emailVerified: null, 
+        emailVerified: null,
       },
       select: {
         id: true,
@@ -88,7 +84,6 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    
     await prisma.verificationToken.create({
       data: {
         identifier: email,
@@ -97,7 +92,6 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    
     const verificationUrl = `${process.env.NEXTAUTH_URL}/auth/verify-email?token=${verificationToken}`;
     const emailResult = await sendOrganizationInviteEmail(
       email,
@@ -108,7 +102,6 @@ export async function POST(request: NextRequest) {
 
     if (!emailResult.success) {
       console.error("Failed to send invitation email:", emailResult.error);
-      
     }
 
     return NextResponse.json({

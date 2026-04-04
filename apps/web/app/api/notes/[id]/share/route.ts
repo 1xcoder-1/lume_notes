@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { auth } from "@/lib/auth";
 
-
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -15,7 +14,6 @@ export async function GET(
   try {
     const { id } = await params;
 
-    
     const note = await prisma.note.findFirst({
       where: {
         id,
@@ -47,7 +45,6 @@ export async function GET(
   }
 }
 
-
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -62,7 +59,6 @@ export async function POST(
     const body = await request.json().catch(() => ({}));
     const { include_css = true, expires_in } = body;
 
-    
     const note = await prisma.note.findFirst({
       where: {
         id,
@@ -77,12 +73,10 @@ export async function POST(
       return NextResponse.json({ error: "Note not found" }, { status: 404 });
     }
 
-    
     if (note.shared_note) {
       return NextResponse.json(note.shared_note);
     }
 
-    
     let expires_at: Date | null = null;
     if (expires_in) {
       const now = new Date();
@@ -102,7 +96,6 @@ export async function POST(
       }
     }
 
-    
     const sharedNote = await prisma.sharedNote.create({
       data: {
         note_id: id,
@@ -122,7 +115,6 @@ export async function POST(
   }
 }
 
-
 export async function PUT(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -137,7 +129,6 @@ export async function PUT(
     const body = await request.json();
     const { is_public, include_css, expires_in } = body;
 
-    
     const note = await prisma.note.findFirst({
       where: {
         id,
@@ -159,12 +150,10 @@ export async function PUT(
       );
     }
 
-    
     const updateData: any = {};
     if (typeof is_public === "boolean") updateData.is_public = is_public;
     if (typeof include_css === "boolean") updateData.include_css = include_css;
 
-    
     if (expires_in !== undefined) {
       if (expires_in === "never" || expires_in === null) {
         updateData.expires_at = null;
@@ -208,7 +197,6 @@ export async function PUT(
   }
 }
 
-
 export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -221,7 +209,6 @@ export async function DELETE(
   try {
     const { id } = await params;
 
-    
     const note = await prisma.note.findFirst({
       where: {
         id,

@@ -14,11 +14,10 @@ export async function DELETE(
   }
 
   try {
-    
     const folder = await prisma.folder.findFirst({
-      where: { 
-        id, 
-        tenant_id: session.user.tenantId 
+      where: {
+        id,
+        tenant_id: session.user.tenantId,
       },
     });
 
@@ -26,19 +25,17 @@ export async function DELETE(
       return NextResponse.json({ error: "Folder not found" }, { status: 404 });
     }
 
-    
     await prisma.$transaction([
-      
       prisma.note.deleteMany({
-        where: { 
+        where: {
           tenant_id: session.user.tenantId,
-          folder: folder.name
-        }
+          folder: folder.name,
+        },
       }),
-      
+
       prisma.folder.delete({
-        where: { id }
-      })
+        where: { id },
+      }),
     ]);
 
     return NextResponse.json({ success: true });

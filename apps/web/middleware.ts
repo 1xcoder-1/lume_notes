@@ -17,9 +17,7 @@ type ExtendedUser = {
 export default auth((req: NextRequest & { auth: Session | null }) => {
   const { pathname } = req.nextUrl;
 
-  
   if (pathname.startsWith("/api/") && req.method === "OPTIONS") {
-    
     const headers = new Headers();
     headers.set("Access-Control-Allow-Origin", "*");
     headers.set(
@@ -30,39 +28,25 @@ export default auth((req: NextRequest & { auth: Session | null }) => {
     return new NextResponse(null, { status: 204, headers });
   }
 
-  
-  const session = req.auth; 
+  const session = req.auth;
 
-  
   const isAuthPage = pathname.startsWith("/auth/");
   const isVerifyEmailPage = pathname.startsWith("/auth/verify-email");
   const isOrgSetupPage = pathname.startsWith("/organization/setup");
   const isRootPage = pathname === "/";
 
-  
   if (session) {
-    
     const hasTenant = Boolean((session.user as ExtendedUser)?.tenantId);
 
-    
     if (isAuthPage && !isVerifyEmailPage) {
       return NextResponse.redirect(new URL("/", req.url));
     }
 
-    
     if (!hasTenant && !isOrgSetupPage && !isVerifyEmailPage) {
       return NextResponse.redirect(new URL("/organization/setup", req.url));
     }
   }
 
-  
-  
-  
-  
-  
-  
-
-  
   if (pathname.startsWith("/api/")) {
     const response = NextResponse.next();
     response.headers.set("Access-Control-Allow-Origin", "*");
@@ -80,13 +64,9 @@ export default auth((req: NextRequest & { auth: Session | null }) => {
   return NextResponse.next();
 });
 
-
 export const config = {
   runtime: "nodejs",
-  matcher: [
-    
-    "/((?!api/|_next/|.*\\.).*)",
-  ],
+  matcher: ["/((?!api/|_next/|.*\\.).*)"],
 };
 
 export const runtime = "nodejs";

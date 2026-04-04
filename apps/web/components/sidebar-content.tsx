@@ -76,7 +76,7 @@ import {
   type Note,
   type Folder,
   Tenant,
-  User as UserType
+  User as UserType,
 } from "@/lib/api";
 import Image from "next/image";
 import { SearchBar } from "./search-bar";
@@ -106,8 +106,6 @@ interface SidebarContentProps {
   onPDFUpload?: (file: File) => void;
 }
 
-
-
 function UpgradeBanner({ onUpgrade }: { onUpgrade: () => void }) {
   return (
     <div className="bg-muted mx-3 mb-3 rounded-md border p-3">
@@ -123,7 +121,6 @@ function UpgradeBanner({ onUpgrade }: { onUpgrade: () => void }) {
     </div>
   );
 }
-
 
 function UserMenu({ user, tenant, onLogout, onUpgrade, onInviteUser }: any) {
   const { theme, setTheme } = useTheme();
@@ -192,7 +189,11 @@ function UserMenu({ user, tenant, onLogout, onUpgrade, onInviteUser }: any) {
         <DropdownMenuGroup>
           {user?.role === "admin" && (
             <>
-              <DropdownMenuItem onClick={() => (window.location.href = "/organization/management")}>
+              <DropdownMenuItem
+                onClick={() =>
+                  (window.location.href = "/organization/management")
+                }
+              >
                 <Users className="mr-2 h-4 w-4" />
                 Organization Management
               </DropdownMenuItem>
@@ -242,14 +243,19 @@ function UserMenu({ user, tenant, onLogout, onUpgrade, onInviteUser }: any) {
   );
 }
 
-
-function UpgradeFooter({ tenant, onUpgrade, user, onLogout, onInviteUser }: any) {
+function UpgradeFooter({
+  tenant,
+  onUpgrade,
+  user,
+  onLogout,
+  onInviteUser,
+}: any) {
   const { data: stats } = useOrganizationStats(user?.role === "admin");
 
   return (
     <div className="flex flex-col gap-4">
       {user?.role === "admin" && stats && (
-        <div className="flex items-center justify-between px-2 text-[10px] text-muted-foreground font-medium uppercase tracking-wider">
+        <div className="text-muted-foreground flex items-center justify-between px-2 text-[10px] font-medium tracking-wider uppercase">
           <div className="flex items-center gap-1.5">
             <Users className="h-3 w-3" />
             <span>{stats.memberCount} Members</span>
@@ -275,9 +281,6 @@ function UpgradeFooter({ tenant, onUpgrade, user, onLogout, onInviteUser }: any)
   );
 }
 
-
-
-
 interface SidebarNoteItemProps {
   note: Note;
   isSelected: boolean;
@@ -288,76 +291,85 @@ interface SidebarNoteItemProps {
   editRestricted: boolean;
 }
 
-const SidebarNoteItem = React.memo(({
-  note,
-  isSelected,
-  onSelect,
-  onShare,
-  onDelete,
-  isDeletePending,
-  editRestricted
-}: SidebarNoteItemProps) => {
-  return (
-    <div
-      draggable={!editRestricted}
-      onDragStart={(e) => {
-        if (editRestricted) {
-          e.preventDefault();
-          return;
-        }
-        e.dataTransfer.setData("noteId", note.id);
-        e.dataTransfer.effectAllowed = "move";
-      }}
-      role="button"
-      tabIndex={0}
-      className={cn(
-        "hover:bg-accent/70 group w-full cursor-pointer select-none rounded-md px-3 py-1.5 text-left text-xs transition-colors focus-visible:outline-2 focus-visible:-outline-offset-2 border-l-2 border-transparent",
-        isSelected && "bg-accent/80 text-foreground font-medium border-primary pl-3"
-      )}
-      onClick={() => onSelect(note.id)}
-      aria-current={isSelected ? "page" : undefined}
-    >
-      <div className="grid grid-cols-[1fr_auto] items-center gap-2">
-        <div className="flex flex-col min-w-0">
-          <span className="truncate">{note.title || "Untitled"}</span>
-          {note.tags && note.tags.length > 0 && (
-            <div className="flex flex-wrap gap-1 mt-0.5">
-              {note.tags.slice(0, 2).map(tag => (
-                <span
-                  key={tag}
-                  className="text-[8px] leading-none font-medium text-primary px-1.5 py-0.5 bg-primary/10 border border-primary/20 rounded-sm"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
-          )}
-        </div>
-        <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-          <button
-            onClick={(e) => { e.stopPropagation(); onShare(note); }}
-            className="p-1 hover:bg-background rounded-md"
-            title="Share"
-          >
-            <Share2 className="size-3 text-muted-foreground" />
-          </button>
-          <button
-            onClick={(e) => { e.stopPropagation(); onDelete(note.id); }}
-            className="p-1 hover:bg-background rounded-md text-destructive"
-            title="Delete"
-            disabled={isDeletePending}
-          >
-            {isDeletePending ? (
-              <div className="size-3 animate-spin rounded-full border border-current border-t-transparent" />
-            ) : (
-              <Trash2 className="size-3" />
+const SidebarNoteItem = React.memo(
+  ({
+    note,
+    isSelected,
+    onSelect,
+    onShare,
+    onDelete,
+    isDeletePending,
+    editRestricted,
+  }: SidebarNoteItemProps) => {
+    return (
+      <div
+        draggable={!editRestricted}
+        onDragStart={e => {
+          if (editRestricted) {
+            e.preventDefault();
+            return;
+          }
+          e.dataTransfer.setData("noteId", note.id);
+          e.dataTransfer.effectAllowed = "move";
+        }}
+        role="button"
+        tabIndex={0}
+        className={cn(
+          "hover:bg-accent/70 group w-full cursor-pointer rounded-md border-l-2 border-transparent px-3 py-1.5 text-left text-xs transition-colors select-none focus-visible:outline-2 focus-visible:-outline-offset-2",
+          isSelected &&
+            "bg-accent/80 text-foreground border-primary pl-3 font-medium"
+        )}
+        onClick={() => onSelect(note.id)}
+        aria-current={isSelected ? "page" : undefined}
+      >
+        <div className="grid grid-cols-[1fr_auto] items-center gap-2">
+          <div className="flex min-w-0 flex-col">
+            <span className="truncate">{note.title || "Untitled"}</span>
+            {note.tags && note.tags.length > 0 && (
+              <div className="mt-0.5 flex flex-wrap gap-1">
+                {note.tags.slice(0, 2).map(tag => (
+                  <span
+                    key={tag}
+                    className="text-primary bg-primary/10 border-primary/20 rounded-sm border px-1.5 py-0.5 text-[8px] leading-none font-medium"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
             )}
-          </button>
+          </div>
+          <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+            <button
+              onClick={e => {
+                e.stopPropagation();
+                onShare(note);
+              }}
+              className="hover:bg-background rounded-md p-1"
+              title="Share"
+            >
+              <Share2 className="text-muted-foreground size-3" />
+            </button>
+            <button
+              onClick={e => {
+                e.stopPropagation();
+                onDelete(note.id);
+              }}
+              className="hover:bg-background text-destructive rounded-md p-1"
+              title="Delete"
+              disabled={isDeletePending}
+            >
+              {isDeletePending ? (
+                <div className="size-3 animate-spin rounded-full border border-current border-t-transparent" />
+              ) : (
+                <Trash2 className="size-3" />
+              )}
+            </button>
+          </div>
         </div>
       </div>
-    </div>
-  );
-});
+    );
+  }
+);
 
 interface SidebarFolderItemProps {
   folder: Folder & { children: any[] };
@@ -377,189 +389,206 @@ interface SidebarFolderItemProps {
   onAddSubfolder: (id: string, name: string) => void;
   onDeleteFolder: (e: React.MouseEvent, id: string, name: string) => void;
   updateNoteMutation: any;
-  setExpandedFolders: React.Dispatch<React.SetStateAction<Record<string, boolean>>>;
+  setExpandedFolders: React.Dispatch<
+    React.SetStateAction<Record<string, boolean>>
+  >;
   ancestorIds: string[];
 }
 
-const SidebarFolderItem = React.memo(({
-  folder,
-  depth,
-  expandedFolders,
-  toggleFolder,
-  notesByFolderId,
-  selectedTag,
-  selectedId,
-  onSelectNote,
-  onShareNote,
-  onDeleteNote,
-  deleteNoteId,
-  deleteNotePending,
-  editRestricted,
-  createRestricted,
-  onAddSubfolder,
-  onDeleteFolder,
-  updateNoteMutation,
-  setExpandedFolders,
-  ancestorIds
-}: SidebarFolderItemProps) => {
-  if (depth > 20) return null;
-  if (ancestorIds.includes(folder.id)) return null;
-  
-  const newAncestorIds = [...ancestorIds, folder.id];
+const SidebarFolderItem = React.memo(
+  ({
+    folder,
+    depth,
+    expandedFolders,
+    toggleFolder,
+    notesByFolderId,
+    selectedTag,
+    selectedId,
+    onSelectNote,
+    onShareNote,
+    onDeleteNote,
+    deleteNoteId,
+    deleteNotePending,
+    editRestricted,
+    createRestricted,
+    onAddSubfolder,
+    onDeleteFolder,
+    updateNoteMutation,
+    setExpandedFolders,
+    ancestorIds,
+  }: SidebarFolderItemProps) => {
+    if (depth > 20) return null;
+    if (ancestorIds.includes(folder.id)) return null;
 
-  const isExpanded = !!expandedFolders[folder.id];
-  const currentFolderNotes = notesByFolderId[folder.id] || [];
+    const newAncestorIds = [...ancestorIds, folder.id];
 
-  const filterMatch = (note: Note) => !selectedTag || (note.tags && note.tags.includes(selectedTag));
-  const filteredNotes = currentFolderNotes.filter(filterMatch);
+    const isExpanded = !!expandedFolders[folder.id];
+    const currentFolderNotes = notesByFolderId[folder.id] || [];
 
-  const hasVisibleContent = filteredNotes.length > 0 || folder.children.some(child => {
-    const childNotes = notesByFolderId[child.id] || [];
-    return childNotes.some(filterMatch) || child.children.length > 0;
-  });
+    const filterMatch = (note: Note) =>
+      !selectedTag || (note.tags && note.tags.includes(selectedTag));
+    const filteredNotes = currentFolderNotes.filter(filterMatch);
 
-  if (selectedTag && !hasVisibleContent) return null;
+    const hasVisibleContent =
+      filteredNotes.length > 0 ||
+      folder.children.some(child => {
+        const childNotes = notesByFolderId[child.id] || [];
+        return childNotes.some(filterMatch) || child.children.length > 0;
+      });
 
-  return (
-    <div className="space-y-0.5">
-      <div
-        className={cn(
-          "group relative flex w-full cursor-pointer select-none items-center gap-2 rounded-md px-2 py-1.5 transition-colors focus-visible:outline-2",
-          isExpanded ? "bg-accent/40" : "hover:bg-accent/50"
-        )}
-        style={{ paddingLeft: `${depth * 12 + 8}px` }}
-        onClick={() => toggleFolder(folder.id)}
-        onDragOver={(e) => {
-          e.preventDefault();
-          e.currentTarget.classList.add("bg-primary/10");
-        }}
-        onDragLeave={(e) => {
-          e.currentTarget.classList.remove("bg-primary/10");
-        }}
-        onDrop={async (e) => {
-          e.currentTarget.classList.remove("bg-primary/10");
-          const noteId = e.dataTransfer.getData("noteId");
-          if (noteId && !editRestricted) {
-            try {
-              await updateNoteMutation.mutateAsync({
-                id: noteId,
-                data: { folderId: folder.id, folder: folder.name },
-              });
-              toast.success(`Note moved to ${folder.name}`);
-              setExpandedFolders(prev => ({ ...prev, [folder.id]: true }));
-            } catch (err) {
-              toast.error("Failed to move note");
-            }
-          }
-        }}
-      >
-        <div className="flex items-center gap-1.5 flex-1 min-w-0">
-          <div className="flex items-center justify-center size-4 relative">
-            {isExpanded ? (
-              <ChevronDown className="size-3 text-muted-foreground transition-transform" />
-            ) : (
-              <ChevronRight className="size-3 text-muted-foreground transition-transform group-hover:text-primary" />
-            )}
-          </div>
-          <div className="flex items-center gap-2 min-w-0">
-            <FolderIcon className={cn("size-3.5", isExpanded ? "text-primary" : "text-muted-foreground/70 group-hover:text-primary")} />
-            <span className="truncate text-xs font-medium tracking-tight overflow-hidden whitespace-nowrap">
-              {folder.name}
-            </span>
-            {currentFolderNotes.length > 0 && !isExpanded && (
-              <Badge variant="secondary" className="h-4 min-w-4 px-1 text-[8px] opacity-40">
-                {currentFolderNotes.length}
-              </Badge>
-            )}
-          </div>
-        </div>
+    if (selectedTag && !hasVisibleContent) return null;
 
-        <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-          <button
-            onClick={(e) => {
-              e.stopPropagation();
-              if (createRestricted) {
-                toast.error("Restricted: Members cannot create folders");
-                return;
-              }
-              onAddSubfolder(folder.id, folder.name);
-            }}
-            disabled={createRestricted}
-            className="p-1 hover:bg-background rounded-md disabled:opacity-30"
-            title={createRestricted ? "Restricted" : "New Sub-folder"}
-          >
-            <Plus className="size-3 text-muted-foreground" />
-          </button>
-          <button
-            onClick={(e) => {
-              if (createRestricted) {
-                e.stopPropagation();
-                toast.error("Restricted: Members cannot delete folders");
-                return;
-              }
-              onDeleteFolder(e, folder.id, folder.name);
-            }}
-            disabled={createRestricted}
-            className="p-1 hover:bg-background rounded-md text-destructive disabled:opacity-30"
-            title={createRestricted ? "Restricted" : "Delete Folder"}
-          >
-            <Trash2 className="size-3" />
-          </button>
-        </div>
-      </div>
-
-      {isExpanded && (
-        <div className="space-y-0.5 mt-0.5">
-          {folder.children.map(child => (
-            <SidebarFolderItem
-              key={child.id}
-              folder={child}
-              depth={depth + 1}
-              expandedFolders={expandedFolders}
-              toggleFolder={toggleFolder}
-              notesByFolderId={notesByFolderId}
-              selectedTag={selectedTag}
-              selectedId={selectedId}
-              onSelectNote={onSelectNote}
-              onShareNote={onShareNote}
-              onDeleteNote={onDeleteNote}
-              deleteNoteId={deleteNoteId}
-              deleteNotePending={deleteNotePending}
-              editRestricted={editRestricted}
-              createRestricted={createRestricted}
-              onAddSubfolder={onAddSubfolder}
-              onDeleteFolder={onDeleteFolder}
-              updateNoteMutation={updateNoteMutation}
-              setExpandedFolders={setExpandedFolders}
-              ancestorIds={newAncestorIds}
-            />
-          ))}
-          {filteredNotes.map(note => (
-            <SidebarNoteItem
-              key={note.id}
-              note={note}
-              isSelected={selectedId === note.id}
-              onSelect={onSelectNote}
-              onShare={onShareNote}
-              onDelete={onDeleteNote}
-              isDeletePending={deleteNoteId === note.id && deleteNotePending}
-              editRestricted={editRestricted}
-            />
-          ))}
-
-          {filteredNotes.length === 0 && folder.children.length === 0 && (
-            <div
-              className="py-2 text-[10px] text-muted-foreground italic text-center border border-dashed border-border/40 rounded-md mx-2 opacity-50"
-              style={{ marginLeft: `${(depth + 1) * 12 + 8}px` }}
-            >
-              no notes here
-            </div>
+    return (
+      <div className="space-y-0.5">
+        <div
+          className={cn(
+            "group relative flex w-full cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 transition-colors select-none focus-visible:outline-2",
+            isExpanded ? "bg-accent/40" : "hover:bg-accent/50"
           )}
+          style={{ paddingLeft: `${depth * 12 + 8}px` }}
+          onClick={() => toggleFolder(folder.id)}
+          onDragOver={e => {
+            e.preventDefault();
+            e.currentTarget.classList.add("bg-primary/10");
+          }}
+          onDragLeave={e => {
+            e.currentTarget.classList.remove("bg-primary/10");
+          }}
+          onDrop={async e => {
+            e.currentTarget.classList.remove("bg-primary/10");
+            const noteId = e.dataTransfer.getData("noteId");
+            if (noteId && !editRestricted) {
+              try {
+                await updateNoteMutation.mutateAsync({
+                  id: noteId,
+                  data: { folderId: folder.id, folder: folder.name },
+                });
+                toast.success(`Note moved to ${folder.name}`);
+                setExpandedFolders(prev => ({ ...prev, [folder.id]: true }));
+              } catch (err) {
+                toast.error("Failed to move note");
+              }
+            }
+          }}
+        >
+          <div className="flex min-w-0 flex-1 items-center gap-1.5">
+            <div className="relative flex size-4 items-center justify-center">
+              {isExpanded ? (
+                <ChevronDown className="text-muted-foreground size-3 transition-transform" />
+              ) : (
+                <ChevronRight className="text-muted-foreground group-hover:text-primary size-3 transition-transform" />
+              )}
+            </div>
+            <div className="flex min-w-0 items-center gap-2">
+              <FolderIcon
+                className={cn(
+                  "size-3.5",
+                  isExpanded
+                    ? "text-primary"
+                    : "text-muted-foreground/70 group-hover:text-primary"
+                )}
+              />
+              <span className="truncate overflow-hidden text-xs font-medium tracking-tight whitespace-nowrap">
+                {folder.name}
+              </span>
+              {currentFolderNotes.length > 0 && !isExpanded && (
+                <Badge
+                  variant="secondary"
+                  className="h-4 min-w-4 px-1 text-[8px] opacity-40"
+                >
+                  {currentFolderNotes.length}
+                </Badge>
+              )}
+            </div>
+          </div>
+
+          <div className="flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
+            <button
+              onClick={e => {
+                e.stopPropagation();
+                if (createRestricted) {
+                  toast.error("Restricted: Members cannot create folders");
+                  return;
+                }
+                onAddSubfolder(folder.id, folder.name);
+              }}
+              disabled={createRestricted}
+              className="hover:bg-background rounded-md p-1 disabled:opacity-30"
+              title={createRestricted ? "Restricted" : "New Sub-folder"}
+            >
+              <Plus className="text-muted-foreground size-3" />
+            </button>
+            <button
+              onClick={e => {
+                if (createRestricted) {
+                  e.stopPropagation();
+                  toast.error("Restricted: Members cannot delete folders");
+                  return;
+                }
+                onDeleteFolder(e, folder.id, folder.name);
+              }}
+              disabled={createRestricted}
+              className="hover:bg-background text-destructive rounded-md p-1 disabled:opacity-30"
+              title={createRestricted ? "Restricted" : "Delete Folder"}
+            >
+              <Trash2 className="size-3" />
+            </button>
+          </div>
         </div>
-      )}
-    </div>
-  );
-});
+
+        {isExpanded && (
+          <div className="mt-0.5 space-y-0.5">
+            {folder.children.map(child => (
+              <SidebarFolderItem
+                key={child.id}
+                folder={child}
+                depth={depth + 1}
+                expandedFolders={expandedFolders}
+                toggleFolder={toggleFolder}
+                notesByFolderId={notesByFolderId}
+                selectedTag={selectedTag}
+                selectedId={selectedId}
+                onSelectNote={onSelectNote}
+                onShareNote={onShareNote}
+                onDeleteNote={onDeleteNote}
+                deleteNoteId={deleteNoteId}
+                deleteNotePending={deleteNotePending}
+                editRestricted={editRestricted}
+                createRestricted={createRestricted}
+                onAddSubfolder={onAddSubfolder}
+                onDeleteFolder={onDeleteFolder}
+                updateNoteMutation={updateNoteMutation}
+                setExpandedFolders={setExpandedFolders}
+                ancestorIds={newAncestorIds}
+              />
+            ))}
+            {filteredNotes.map(note => (
+              <SidebarNoteItem
+                key={note.id}
+                note={note}
+                isSelected={selectedId === note.id}
+                onSelect={onSelectNote}
+                onShare={onShareNote}
+                onDelete={onDeleteNote}
+                isDeletePending={deleteNoteId === note.id && deleteNotePending}
+                editRestricted={editRestricted}
+              />
+            ))}
+
+            {filteredNotes.length === 0 && folder.children.length === 0 && (
+              <div
+                className="text-muted-foreground border-border/40 mx-2 rounded-md border border-dashed py-2 text-center text-[10px] italic opacity-50"
+                style={{ marginLeft: `${(depth + 1) * 12 + 8}px` }}
+              >
+                no notes here
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    );
+  }
+);
 
 export const SidebarContent = React.memo(function SidebarContent({
   notes,
@@ -590,15 +619,25 @@ export const SidebarContent = React.memo(function SidebarContent({
   const { data: foldersData } = useFolders();
   const createFolderMutation = useCreateFolder();
   const deleteFolderMutation = useDeleteFolder();
-  const [expandedFolders, setExpandedFolders] = React.useState<Record<string, boolean>>({ "All Notes": true });
+  const [expandedFolders, setExpandedFolders] = React.useState<
+    Record<string, boolean>
+  >({ "All Notes": true });
   const [isCreatingFolder, setIsCreatingFolder] = React.useState(false);
   const [newFolderName, setNewFolderName] = React.useState("");
-  const [deleteFolderId, setDeleteFolderId] = React.useState<string | null>(null);
-  const [deleteFolderName, setDeleteFolderName] = React.useState<string | null>(null);
+  const [deleteFolderId, setDeleteFolderId] = React.useState<string | null>(
+    null
+  );
+  const [deleteFolderName, setDeleteFolderName] = React.useState<string | null>(
+    null
+  );
 
   const [isCreatingSubfolder, setIsCreatingSubfolder] = React.useState(false);
-  const [parentIdForSubfolder, setParentIdForSubfolder] = React.useState<string | null>(null);
-  const [parentNameForSubfolder, setParentNameForSubfolder] = React.useState<string | null>(null);
+  const [parentIdForSubfolder, setParentIdForSubfolder] = React.useState<
+    string | null
+  >(null);
+  const [parentNameForSubfolder, setParentNameForSubfolder] = React.useState<
+    string | null
+  >(null);
   const [newSubfolderName, setNewSubfolderName] = React.useState("");
 
   const createRestricted = user?.role !== "admin" && !tenant.members_can_create;
@@ -608,11 +647,14 @@ export const SidebarContent = React.memo(function SidebarContent({
     setExpandedFolders(prev => ({ ...prev, [folderId]: !prev[folderId] }));
   }, []);
 
-  const handleDeleteFolder = React.useCallback((e: React.MouseEvent, id: string, name: string) => {
-    e.stopPropagation();
-    setDeleteFolderId(id);
-    setDeleteFolderName(name);
-  }, []);
+  const handleDeleteFolder = React.useCallback(
+    (e: React.MouseEvent, id: string, name: string) => {
+      e.stopPropagation();
+      setDeleteFolderId(id);
+      setDeleteFolderName(name);
+    },
+    []
+  );
 
   const onConfirmDeleteFolder = async () => {
     if (!deleteFolderId) return;
@@ -645,8 +687,13 @@ export const SidebarContent = React.memo(function SidebarContent({
     if (!name || !parentIdForSubfolder) return;
 
     try {
-      await createFolderMutation.mutateAsync({ name, parentId: parentIdForSubfolder });
-      toast.success(`Sub-folder "${name}" created inside "${parentNameForSubfolder}"`);
+      await createFolderMutation.mutateAsync({
+        name,
+        parentId: parentIdForSubfolder,
+      });
+      toast.success(
+        `Sub-folder "${name}" created inside "${parentNameForSubfolder}"`
+      );
       setNewSubfolderName("");
       setIsCreatingSubfolder(false);
       setParentIdForSubfolder(null);
@@ -679,7 +726,7 @@ export const SidebarContent = React.memo(function SidebarContent({
     (foldersData || []).forEach(f => {
       const folder = folderMapId[f.id];
       if (!folder) return;
-      
+
       const parent = f.parentId ? folderMapId[f.parentId] : null;
       if (parent && f.id !== f.parentId) {
         parent.children.push(folder);
@@ -707,22 +754,31 @@ export const SidebarContent = React.memo(function SidebarContent({
       <div className="space-y-4">
         {selectedTag ? (
           <div className="space-y-0.5 px-1">
-            <p className="text-[10px] text-muted-foreground/50 font-semibold px-2 mb-2 uppercase">Results for #{selectedTag}</p>
-            {notesList.filter(n => n.tags && n.tags.includes(selectedTag)).length === 0 ? (
-              <p className="text-xs text-muted-foreground italic px-2 text-center py-4">No notes with this tag</p>
+            <p className="text-muted-foreground/50 mb-2 px-2 text-[10px] font-semibold uppercase">
+              Results for #{selectedTag}
+            </p>
+            {notesList.filter(n => n.tags && n.tags.includes(selectedTag))
+              .length === 0 ? (
+              <p className="text-muted-foreground px-2 py-4 text-center text-xs italic">
+                No notes with this tag
+              </p>
             ) : (
-              notesList.filter(n => n.tags && n.tags.includes(selectedTag)).map(note => (
-                <SidebarNoteItem
-                  key={note.id}
-                  note={note}
-                  isSelected={selectedId === note.id}
-                  onSelect={onSelectNote}
-                  onShare={onShareNote!}
-                  onDelete={onDeleteNote}
-                  isDeletePending={deleteNoteId === note.id && deleteNotePending}
-                  editRestricted={editRestricted}
-                />
-              ))
+              notesList
+                .filter(n => n.tags && n.tags.includes(selectedTag))
+                .map(note => (
+                  <SidebarNoteItem
+                    key={note.id}
+                    note={note}
+                    isSelected={selectedId === note.id}
+                    onSelect={onSelectNote}
+                    onShare={onShareNote!}
+                    onDelete={onDeleteNote}
+                    isDeletePending={
+                      deleteNoteId === note.id && deleteNotePending
+                    }
+                    editRestricted={editRestricted}
+                  />
+                ))
             )}
           </div>
         ) : (
@@ -731,18 +787,30 @@ export const SidebarContent = React.memo(function SidebarContent({
               {/* Main Workspace Drop Target */}
               <div
                 className={cn(
-                  "group relative flex w-full cursor-pointer select-none items-center gap-2 rounded-md px-2 py-1.5 transition-all text-muted-foreground hover:text-foreground hover:bg-accent/40 border border-transparent",
+                  "group text-muted-foreground hover:text-foreground hover:bg-accent/40 relative flex w-full cursor-pointer items-center gap-2 rounded-md border border-transparent px-2 py-1.5 transition-all select-none",
                   "drag-target-root"
                 )}
-                onDragOver={(e) => {
+                onDragOver={e => {
                   e.preventDefault();
-                  e.currentTarget.classList.add("bg-primary/10", "border-primary/20", "text-primary");
+                  e.currentTarget.classList.add(
+                    "bg-primary/10",
+                    "border-primary/20",
+                    "text-primary"
+                  );
                 }}
-                onDragLeave={(e) => {
-                  e.currentTarget.classList.remove("bg-primary/10", "border-primary/20", "text-primary");
+                onDragLeave={e => {
+                  e.currentTarget.classList.remove(
+                    "bg-primary/10",
+                    "border-primary/20",
+                    "text-primary"
+                  );
                 }}
-                onDrop={async (e) => {
-                  e.currentTarget.classList.remove("bg-primary/10", "border-primary/20", "text-primary");
+                onDrop={async e => {
+                  e.currentTarget.classList.remove(
+                    "bg-primary/10",
+                    "border-primary/20",
+                    "text-primary"
+                  );
                   const noteId = e.dataTransfer.getData("noteId");
                   if (noteId && !editRestricted) {
                     try {
@@ -757,11 +825,11 @@ export const SidebarContent = React.memo(function SidebarContent({
                   }
                 }}
               >
-                <div className="flex items-center gap-2 flex-1 min-w-0">
-                  <div className="flex items-center justify-center size-4">
+                <div className="flex min-w-0 flex-1 items-center gap-2">
+                  <div className="flex size-4 items-center justify-center">
                     <FileText className="size-3.5" />
                   </div>
-                  <span className="truncate text-xs font-semibold uppercase tracking-wider opacity-70">
+                  <span className="truncate text-xs font-semibold tracking-wider uppercase opacity-70">
                     Main Library
                   </span>
                 </div>
@@ -794,15 +862,23 @@ export const SidebarContent = React.memo(function SidebarContent({
             </div>
 
             <div
-              className="space-y-0.5 min-h-[40px] pt-2"
-              onDragOver={(e) => { e.preventDefault(); e.currentTarget.classList.add("bg-primary/5"); }}
-              onDragLeave={(e) => e.currentTarget.classList.remove("bg-primary/5")}
-              onDrop={async (e) => {
+              className="min-h-[40px] space-y-0.5 pt-2"
+              onDragOver={e => {
+                e.preventDefault();
+                e.currentTarget.classList.add("bg-primary/5");
+              }}
+              onDragLeave={e =>
+                e.currentTarget.classList.remove("bg-primary/5")
+              }
+              onDrop={async e => {
                 e.currentTarget.classList.remove("bg-primary/5");
                 const noteId = e.dataTransfer.getData("noteId");
                 if (noteId && !editRestricted) {
                   try {
-                    await updateNoteMutation.mutateAsync({ id: noteId, data: { folderId: null, folder: null } });
+                    await updateNoteMutation.mutateAsync({
+                      id: noteId,
+                      data: { folderId: null, folder: null },
+                    });
                     toast.success("Note moved to Main Library");
                   } catch (err) {
                     toast.error("Failed to move note");
@@ -818,14 +894,19 @@ export const SidebarContent = React.memo(function SidebarContent({
                   onSelect={onSelectNote}
                   onShare={onShareNote!}
                   onDelete={onDeleteNote}
-                  isDeletePending={deleteNoteId === note.id && deleteNotePending}
+                  isDeletePending={
+                    deleteNoteId === note.id && deleteNotePending
+                  }
                   editRestricted={editRestricted}
                 />
               ))}
-              {(!notesByFolderId["root"] || notesByFolderId["root"].length === 0) && (
-                <div className="flex flex-col items-center justify-center py-8 opacity-20 group-hover:opacity-40 transition-opacity">
-                   <Sparkles className="size-6 mb-2" />
-                   <p className="text-[10px] font-medium tracking-tighter uppercase">Library Empty</p>
+              {(!notesByFolderId["root"] ||
+                notesByFolderId["root"].length === 0) && (
+                <div className="flex flex-col items-center justify-center py-8 opacity-20 transition-opacity group-hover:opacity-40">
+                  <Sparkles className="mb-2 size-6" />
+                  <p className="text-[10px] font-medium tracking-tighter uppercase">
+                    Library Empty
+                  </p>
                 </div>
               )}
             </div>
@@ -833,7 +914,23 @@ export const SidebarContent = React.memo(function SidebarContent({
         )}
       </div>
     );
-  }, [notes, foldersData, selectedTag, expandedFolders, selectedId, editRestricted, deleteNoteId, deleteNotePending, onSelectNote, onDeleteNote, onShareNote, onExportNote, updateNoteMutation, toggleFolder, handleDeleteFolder]);
+  }, [
+    notes,
+    foldersData,
+    selectedTag,
+    expandedFolders,
+    selectedId,
+    editRestricted,
+    deleteNoteId,
+    deleteNotePending,
+    onSelectNote,
+    onDeleteNote,
+    onShareNote,
+    onExportNote,
+    updateNoteMutation,
+    toggleFolder,
+    handleDeleteFolder,
+  ]);
 
   if (isLoading) {
     return (
@@ -898,7 +995,7 @@ export const SidebarContent = React.memo(function SidebarContent({
           onClick={onCreateNote}
           disabled={limitReached || createRestricted}
           variant="default"
-          className="w-full h-9 font-semibold shadow-sm transition-all hover:shadow-primary/20 hover:scale-[1.01]"
+          className="hover:shadow-primary/20 h-9 w-full font-semibold shadow-sm transition-all hover:scale-[1.01]"
         >
           <Plus className="mr-1.5 size-4" />
           New Note
@@ -909,7 +1006,7 @@ export const SidebarContent = React.memo(function SidebarContent({
             id="sidebar-file-upload"
             accept="application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/msword,image/*,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
             className="hidden"
-            onChange={(e) => {
+            onChange={e => {
               const file = e.target.files?.[0];
               if (file && onPDFUpload) {
                 onPDFUpload(file);
@@ -919,15 +1016,17 @@ export const SidebarContent = React.memo(function SidebarContent({
           <Button
             size="sm"
             variant="outline"
-            className="w-full justify-between h-9 text-xs font-normal shadow-sm bg-card transition-all hover:bg-accent hover:text-accent-foreground border-border/60 group"
-            onClick={() => document.getElementById("sidebar-file-upload")?.click()}
+            className="bg-card hover:bg-accent hover:text-accent-foreground border-border/60 group h-9 w-full justify-between text-xs font-normal shadow-sm transition-all"
+            onClick={() =>
+              document.getElementById("sidebar-file-upload")?.click()
+            }
             disabled={createRestricted}
           >
             <div className="flex items-center gap-2">
-              <FileText className="size-3.5 text-muted-foreground/70 group-hover:text-primary transition-colors" />
+              <FileText className="text-muted-foreground/70 group-hover:text-primary size-3.5 transition-colors" />
               <span className="truncate">Chat / Import File</span>
             </div>
-            <ChevronRight className="size-3.5 opacity-40 group-hover:opacity-100 transition-opacity" />
+            <ChevronRight className="size-3.5 opacity-40 transition-opacity group-hover:opacity-100" />
           </Button>
         </div>
       </div>
@@ -938,24 +1037,30 @@ export const SidebarContent = React.memo(function SidebarContent({
               variant="outline"
               size="sm"
               className={cn(
-                "w-full justify-between h-9 text-xs font-normal shadow-sm bg-card transition-all hover:bg-accent hover:text-accent-foreground border-border/60",
-                selectedTag && "border-primary/50 text-primary bg-primary/5 hover:bg-primary/10"
+                "bg-card hover:bg-accent hover:text-accent-foreground border-border/60 h-9 w-full justify-between text-xs font-normal shadow-sm transition-all",
+                selectedTag &&
+                  "border-primary/50 text-primary bg-primary/5 hover:bg-primary/10"
               )}
             >
               <div className="flex items-center gap-2">
-                <TagsIcon className={cn("size-3.5", selectedTag ? "text-primary" : "text-muted-foreground/70")} />
+                <TagsIcon
+                  className={cn(
+                    "size-3.5",
+                    selectedTag ? "text-primary" : "text-muted-foreground/70"
+                  )}
+                />
                 <span className="truncate">
-                  {selectedTag ? `Filtered: ${selectedTag}` : "Smart Tags Filter"}
+                  {selectedTag
+                    ? `Filtered: ${selectedTag}`
+                    : "Smart Tags Filter"}
                 </span>
               </div>
               <ChevronDown className="size-3.5 opacity-50" />
             </Button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent
-            className="w-(--radix-dropdown-menu-trigger-width) max-h-[300px] overflow-y-auto shadow-lg backdrop-blur-xl bg-background/95 border-border/10"
-          >
+          <DropdownMenuContent className="bg-background/95 border-border/10 max-h-[300px] w-(--radix-dropdown-menu-trigger-width) overflow-y-auto shadow-lg backdrop-blur-xl">
             {uniqueTags.length === 0 ? (
-              <div className="px-3 py-4 text-center text-xs text-muted-foreground italic">
+              <div className="text-muted-foreground px-3 py-4 text-center text-xs italic">
                 No tags yet. Use AI to auto tag!
               </div>
             ) : (
@@ -963,36 +1068,44 @@ export const SidebarContent = React.memo(function SidebarContent({
                 <DropdownMenuItem
                   onClick={() => setSelectedTag(null)}
                   className={cn(
-                    "text-xs font-medium cursor-pointer rounded-sm mb-1",
+                    "mb-1 cursor-pointer rounded-sm text-xs font-medium",
                     !selectedTag && "bg-secondary text-secondary-foreground"
                   )}
                 >
                   All Notes (Clear Filter)
                 </DropdownMenuItem>
                 <DropdownMenuSeparator className="opacity-50" />
-                <div className="px-2 py-1.5 text-[10px] uppercase font-bold tracking-wider text-muted-foreground/60">
+                <div className="text-muted-foreground/60 px-2 py-1.5 text-[10px] font-bold tracking-wider uppercase">
                   Available Tags
                 </div>
                 {uniqueTags.map(tag => (
                   <DropdownMenuItem
                     key={tag}
-                    onClick={() => setSelectedTag(prev => prev === tag ? null : tag)}
+                    onClick={() =>
+                      setSelectedTag(prev => (prev === tag ? null : tag))
+                    }
                     className={cn(
-                      "text-xs transition-colors cursor-pointer rounded-sm my-0.5",
+                      "my-0.5 cursor-pointer rounded-sm text-xs transition-colors",
                       selectedTag === tag
                         ? "bg-primary/15 text-primary font-semibold"
                         : "hover:bg-accent"
                     )}
                   >
-                    <div className="flex items-center justify-between w-full">
+                    <div className="flex w-full items-center justify-between">
                       <div className="flex items-center gap-2">
-                        <span className={cn(
-                          "size-1.5 rounded-full",
-                          selectedTag === tag ? "bg-primary" : "bg-muted-foreground/30"
-                        )} />
+                        <span
+                          className={cn(
+                            "size-1.5 rounded-full",
+                            selectedTag === tag
+                              ? "bg-primary"
+                              : "bg-muted-foreground/30"
+                          )}
+                        />
                         <span className="truncate">{tag}</span>
                       </div>
-                      {selectedTag === tag && <Check className="size-3 text-primary ml-2" />}
+                      {selectedTag === tag && (
+                        <Check className="text-primary ml-2 size-3" />
+                      )}
                     </div>
                   </DropdownMenuItem>
                 ))}
@@ -1003,8 +1116,10 @@ export const SidebarContent = React.memo(function SidebarContent({
       </div>
       <Separator className="my-2" />
 
-      <div className="mb-2 px-3 flex items-center justify-between">
-        <p className="text-muted-foreground text-[10px] font-bold uppercase tracking-wider">Explorer</p>
+      <div className="mb-2 flex items-center justify-between px-3">
+        <p className="text-muted-foreground text-[10px] font-bold tracking-wider uppercase">
+          Explorer
+        </p>
         <Button
           variant="ghost"
           size="icon"
@@ -1024,19 +1139,22 @@ export const SidebarContent = React.memo(function SidebarContent({
       </div>
 
       <ScrollArea type="always" className="min-h-0 flex-1">
-        <div className="px-2 space-y-1 pb-4">
+        <div className="space-y-1 px-2 pb-4">
           {notesError && (
-            <p className="text-destructive px-2 py-1.5 text-xs text-center">
+            <p className="text-destructive px-2 py-1.5 text-center text-xs">
               Failed to load explorer
             </p>
           )}
 
           {isCreatingFolder && (
-            <form onSubmit={handleCreateFolder} className="px-2 py-1 flex items-center gap-2 bg-accent/20 rounded-md mb-2">
-              <FolderIcon className="size-3.5 text-primary/60" />
+            <form
+              onSubmit={handleCreateFolder}
+              className="bg-accent/20 mb-2 flex items-center gap-2 rounded-md px-2 py-1"
+            >
+              <FolderIcon className="text-primary/60 size-3.5" />
               <input
                 autoFocus
-                className="bg-transparent border-none text-xs outline-none w-full placeholder:text-muted-foreground/50"
+                className="placeholder:text-muted-foreground/50 w-full border-none bg-transparent text-xs outline-none"
                 placeholder="Folder name..."
                 value={newFolderName}
                 onChange={e => setNewFolderName(e.target.value)}
@@ -1070,7 +1188,9 @@ export const SidebarContent = React.memo(function SidebarContent({
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Folder</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete the folder "{deleteFolderName}"? This will <strong>permanently delete all notes</strong> inside this folder. This action cannot be undone.
+              Are you sure you want to delete the folder "{deleteFolderName}"?
+              This will <strong>permanently delete all notes</strong> inside
+              this folder. This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
@@ -1084,7 +1204,7 @@ export const SidebarContent = React.memo(function SidebarContent({
             >
               {deleteFolderMutation.isPending ? (
                 <>
-                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Deleting...
                 </>
               ) : (
@@ -1097,7 +1217,7 @@ export const SidebarContent = React.memo(function SidebarContent({
 
       <Dialog
         open={isCreatingSubfolder}
-        onOpenChange={(open) => {
+        onOpenChange={open => {
           setIsCreatingSubfolder(open);
           if (!open) {
             setNewSubfolderName("");
@@ -1118,12 +1238,19 @@ export const SidebarContent = React.memo(function SidebarContent({
                 autoFocus
                 placeholder="Folder name..."
                 value={newSubfolderName}
-                onChange={(e) => setNewSubfolderName(e.target.value)}
+                onChange={e => setNewSubfolderName(e.target.value)}
               />
             </div>
             <DialogFooter className="pt-4">
-              <Button type="submit" disabled={!newSubfolderName.trim() || createFolderMutation.isPending}>
-                {createFolderMutation.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+              <Button
+                type="submit"
+                disabled={
+                  !newSubfolderName.trim() || createFolderMutation.isPending
+                }
+              >
+                {createFolderMutation.isPending && (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                )}
                 Create Folder
               </Button>
             </DialogFooter>
@@ -1139,7 +1266,10 @@ export const SidebarContent = React.memo(function SidebarContent({
           <AlertDialogHeader>
             <AlertDialogTitle>Delete Note</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete "{notes?.find((n: Note) => n.id === deleteNoteId)?.title || "Untitled"}"? This action cannot be undone.
+              Are you sure you want to delete "
+              {notes?.find((n: Note) => n.id === deleteNoteId)?.title ||
+                "Untitled"}
+              "? This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

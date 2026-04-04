@@ -7,7 +7,6 @@ import { registerSchema } from "@/lib/validations";
 import { authLimiter, rateLimitResponse } from "@/lib/rate-limit";
 
 export async function POST(request: NextRequest) {
-  
   const ip = request.headers.get("x-forwarded-for") || "127.0.0.1";
   if (!(await authLimiter.check(10, ip))) {
     return rateLimitResponse();
@@ -16,7 +15,6 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
-    
     const validationResult = registerSchema.safeParse(body);
     if (!validationResult.success) {
       return NextResponse.json(
@@ -27,7 +25,6 @@ export async function POST(request: NextRequest) {
 
     const { email, password, firstName, lastName } = validationResult.data;
 
-    
     const existingUser = await prisma.user.findUnique({
       where: { email },
     });
@@ -39,14 +36,11 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    
     const verificationToken = randomBytes(32).toString("hex");
-    const tokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000); 
+    const tokenExpires = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
-    
     const user = await prisma.user.create({
       data: {
         email,
@@ -54,12 +48,11 @@ export async function POST(request: NextRequest) {
         last_name: lastName || null,
         password_hash: hashedPassword,
         role: "admin",
-        tenant_id: undefined, 
-        emailVerified: null, 
+        tenant_id: undefined,
+        emailVerified: null,
       },
     });
 
-    
     await prisma.verificationToken.create({
       data: {
         identifier: email,
@@ -68,7 +61,6 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    
     const emailResult = await sendVerificationEmail(email, verificationToken);
 
     if (!emailResult.success) {

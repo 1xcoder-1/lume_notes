@@ -21,7 +21,6 @@ export default function ForgotPasswordPage() {
     setError("");
     setSuccess("");
 
-    
     const validationResult = forgotPasswordSchema.safeParse({ email });
     if (!validationResult.success) {
       setError(

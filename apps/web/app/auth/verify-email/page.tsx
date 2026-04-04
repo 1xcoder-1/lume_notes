@@ -26,7 +26,6 @@ async function VerifyEmailContent({ searchParams }: VerifyEmailPageProps) {
   }
 
   try {
-    
     const verificationToken = await prisma.verificationToken.findFirst({
       where: {
         token,
@@ -51,13 +50,11 @@ async function VerifyEmailContent({ searchParams }: VerifyEmailPageProps) {
       );
     }
 
-    
     await prisma.user.update({
       where: { email: verificationToken.identifier },
       data: { emailVerified: new Date() },
     });
 
-    
     await prisma.verificationToken.delete({
       where: {
         identifier_token: {
@@ -74,7 +71,8 @@ async function VerifyEmailContent({ searchParams }: VerifyEmailPageProps) {
           <div className="text-center">
             <h1 className="text-2xl font-bold">Verification Error</h1>
             <p className="text-muted-foreground">
-              There was an error while verifying your email. Please try again later.
+              There was an error while verifying your email. Please try again
+              later.
             </p>
           </div>
         </div>
@@ -82,7 +80,6 @@ async function VerifyEmailContent({ searchParams }: VerifyEmailPageProps) {
     );
   }
 
-  
   redirect("/auth/login?verified=true");
 }
 

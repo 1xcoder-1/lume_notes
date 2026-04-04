@@ -19,7 +19,6 @@ interface SearchBarProps {
   className?: string;
 }
 
-
 export const SearchBar = React.memo(function SearchBar({
   onSelectNote,
   className,
@@ -34,7 +33,7 @@ export const SearchBar = React.memo(function SearchBar({
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedQuery(query);
-    }, 400); 
+    }, 400);
     return () => clearTimeout(timer);
   }, [query]);
 
@@ -50,7 +49,6 @@ export const SearchBar = React.memo(function SearchBar({
     }
   }, [isError]);
 
-  
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (
@@ -65,7 +63,6 @@ export const SearchBar = React.memo(function SearchBar({
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === "k") {
@@ -90,8 +87,6 @@ export const SearchBar = React.memo(function SearchBar({
     inputRef.current?.focus();
   };
 
-
-
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Escape") {
       setIsOpen(false);
@@ -105,7 +100,7 @@ export const SearchBar = React.memo(function SearchBar({
     <div ref={containerRef} className={cn("relative w-full", className)}>
       <div className="relative flex items-center gap-2">
         <div className="relative flex-1">
-          <Search className="text-muted-foreground absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 transform" />
+          <Search className="text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 transform" />
           <Input
             ref={inputRef}
             type="text"
@@ -117,9 +112,9 @@ export const SearchBar = React.memo(function SearchBar({
             }}
             onFocus={() => query && setIsOpen(true)}
             onKeyDown={handleKeyDown}
-            className="w-full rounded-lg pl-9 pr-12 transition-all focus-visible:ring-primary/20 bg-background border-border/60 hover:border-border/80"
+            className="focus-visible:ring-primary/20 bg-background border-border/60 hover:border-border/80 w-full rounded-lg pr-12 pl-9 transition-all"
           />
-          <div className="absolute right-2 top-1/2 flex -translate-y-1/2 transform items-center gap-1">
+          <div className="absolute top-1/2 right-2 flex -translate-y-1/2 transform items-center gap-1">
             {query && (
               <button
                 onClick={handleClear}
@@ -135,7 +130,7 @@ export const SearchBar = React.memo(function SearchBar({
 
       {}
       {isOpen && query && (
-        <div className="border-border bg-popover absolute left-0 right-0 top-full z-50 mt-1.5 max-h-[400px] overflow-y-auto rounded-xl border-2 shadow-2xl animate-in fade-in zoom-in-95 duration-150">
+        <div className="border-border bg-popover animate-in fade-in zoom-in-95 absolute top-full right-0 left-0 z-50 mt-1.5 max-h-[400px] overflow-y-auto rounded-xl border-2 shadow-2xl duration-150">
           {isLoading && (
             <div className="flex items-center justify-center px-4 py-8">
               <Loader2 className="text-primary h-5 w-5 animate-spin" />
@@ -161,7 +156,7 @@ export const SearchBar = React.memo(function SearchBar({
                 >
                   <div className="flex flex-col gap-1">
                     <div className="flex items-center justify-between gap-2">
-                       <h4 className="line-clamp-1 text-sm font-semibold group-hover:text-primary transition-colors">
+                      <h4 className="group-hover:text-primary line-clamp-1 text-sm font-semibold transition-colors">
                         {note.title || "Untitled"}
                       </h4>
                     </div>
@@ -169,7 +164,10 @@ export const SearchBar = React.memo(function SearchBar({
                       {note.tags && note.tags.length > 0 && (
                         <div className="flex flex-wrap gap-1">
                           {note.tags.slice(0, 3).map(tag => (
-                            <span key={tag} className="text-[9px] text-primary bg-primary/5 px-1 rounded border border-primary/10">
+                            <span
+                              key={tag}
+                              className="text-primary bg-primary/5 border-primary/10 rounded border px-1 text-[9px]"
+                            >
                               #{tag}
                             </span>
                           ))}

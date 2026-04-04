@@ -20,17 +20,27 @@ export async function PUT(request: NextRequest) {
     const tenantId = (user as any).tenantId;
 
     if (!tenantId) {
-      return NextResponse.json({ error: "No organization found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "No organization found" },
+        { status: 404 }
+      );
     }
 
     const body = await request.json();
     const validationResult = updateOrganizationSchema.safeParse(body);
-    
+
     if (!validationResult.success) {
-      return NextResponse.json({ error: validationResult.error.issues[0]?.message || "Validation failed" }, { status: 400 });
+      return NextResponse.json(
+        {
+          error:
+            validationResult.error.issues[0]?.message || "Validation failed",
+        },
+        { status: 400 }
+      );
     }
 
-    const { name, members_can_edit, members_can_create, members_can_share } = validationResult.data;
+    const { name, members_can_edit, members_can_create, members_can_share } =
+      validationResult.data;
 
     const updatedTenant = await prisma.tenant.update({
       where: { id: tenantId },

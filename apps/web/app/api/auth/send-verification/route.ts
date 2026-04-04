@@ -6,7 +6,6 @@ import { forgotPasswordSchema } from "@/lib/validations";
 import { authLimiter, rateLimitResponse } from "@/lib/rate-limit";
 
 export async function POST(request: NextRequest) {
-  
   const ip = request.headers.get("x-forwarded-for") || "127.0.0.1";
   if (!(await authLimiter.check(1, ip))) {
     return rateLimitResponse();
@@ -15,7 +14,6 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
-    
     const validationResult = forgotPasswordSchema.safeParse(body);
     if (!validationResult.success) {
       const errorMessage =
@@ -25,24 +23,20 @@ export async function POST(request: NextRequest) {
 
     const { email } = validationResult.data;
 
-    
     const user = await prisma.user.findUnique({
       where: { email },
     });
 
     if (!user) {
-      
       return NextResponse.json({
         message:
           "If an account with this email exists, a verification email has been sent.",
       });
     }
 
-    
     const token = randomBytes(32).toString("hex");
-    const expires = new Date(Date.now() + 24 * 60 * 60 * 1000); 
+    const expires = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
-    
     await prisma.verificationToken.create({
       data: {
         identifier: email,
@@ -51,7 +45,6 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    
     const emailResult = await sendVerificationEmail(email, token);
 
     if (!emailResult.success) {

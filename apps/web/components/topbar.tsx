@@ -21,8 +21,6 @@ interface TopbarProps {
   onLogout: () => void;
 }
 
-
-
 export const Topbar = React.memo(function Topbar({
   limitReached,
   canUpgrade,
@@ -55,7 +53,7 @@ export const Topbar = React.memo(function Topbar({
           </div>
         ) : (
           <div className="flex items-center gap-2">
-            <span className="truncate text-pretty text-sm font-medium">
+            <span className="truncate text-sm font-medium text-pretty">
               {tenant?.slug}
             </span>
             <Badge

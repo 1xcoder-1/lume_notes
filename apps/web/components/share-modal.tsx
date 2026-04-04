@@ -54,7 +54,6 @@ interface SharedNoteData {
   view_count: number;
 }
 
-
 const shareApi = {
   getShareStatus: async (noteId: string): Promise<SharedNoteData | null> => {
     const response = await fetch(`/api/notes/${noteId}/share`);
@@ -111,7 +110,6 @@ export function ShareModal({ open, onOpenChange, note }: ShareModalProps) {
   const [copied, setCopied] = useState(false);
   const queryClient = useQueryClient();
 
-  
   const {
     data: shareData,
     isLoading: isLoadingShare,
@@ -122,7 +120,6 @@ export function ShareModal({ open, onOpenChange, note }: ShareModalProps) {
     enabled: open && !!note?.id,
   });
 
-  
   const createShareMutation = useMutation({
     mutationFn: () =>
       shareApi.createShare(note!.id, {
@@ -138,7 +135,6 @@ export function ShareModal({ open, onOpenChange, note }: ShareModalProps) {
     },
   });
 
-  
   const updateShareMutation = useMutation({
     mutationFn: (options: {
       is_public?: boolean;
@@ -154,7 +150,6 @@ export function ShareModal({ open, onOpenChange, note }: ShareModalProps) {
     },
   });
 
-  
   const deleteShareMutation = useMutation({
     mutationFn: () => shareApi.deleteShare(note!.id),
     onSuccess: () => {
@@ -166,7 +161,6 @@ export function ShareModal({ open, onOpenChange, note }: ShareModalProps) {
     },
   });
 
-  
   useEffect(() => {
     if (shareData) {
       setIncludeCss(shareData.include_css);
@@ -234,7 +228,7 @@ export function ShareModal({ open, onOpenChange, note }: ShareModalProps) {
                 <div className="flex items-center gap-2">
                   <div className="bg-muted flex min-w-0 flex-1 items-center gap-2 rounded-md border px-3 py-2">
                     <LinkIcon className="text-muted-foreground h-4 w-4 shrink-0" />
-                    <div className="line-clamp-1 max-w-full break-all text-sm">
+                    <div className="line-clamp-1 max-w-full text-sm break-all">
                       {shareUrl}
                     </div>
                   </div>

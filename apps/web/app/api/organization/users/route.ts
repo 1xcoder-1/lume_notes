@@ -14,7 +14,10 @@ export async function GET(request: NextRequest) {
     const tenantId = (user as any).tenantId;
 
     if (!tenantId) {
-      return NextResponse.json({ error: "No organization found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "No organization found" },
+        { status: 404 }
+      );
     }
 
     const users = await prisma.user.findMany({

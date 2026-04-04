@@ -10,7 +10,6 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Token is required" }, { status: 400 });
     }
 
-    
     const verificationToken = await prisma.verificationToken.findFirst({
       where: {
         token,
@@ -27,13 +26,11 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    
     await prisma.user.update({
       where: { email: verificationToken.identifier },
       data: { emailVerified: new Date() },
     });
 
-    
     await prisma.verificationToken.delete({
       where: {
         identifier_token: {
@@ -43,7 +40,6 @@ export async function GET(request: NextRequest) {
       },
     });
 
-    
     return NextResponse.redirect(
       new URL("/auth/login?verified=true", request.url)
     );

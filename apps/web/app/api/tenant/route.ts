@@ -17,12 +17,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Tenant not found" }, { status: 404 });
     }
 
-    
     const noteCount = await prisma.note.count({
       where: { tenant_id: session.user.tenantId },
     });
 
-    
     const userRecord = await prisma.user.findUnique({
       where: { id: session.user.id },
       select: { email: true },

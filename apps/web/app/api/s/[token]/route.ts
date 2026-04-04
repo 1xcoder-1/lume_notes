@@ -2,12 +2,10 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { apiLimiter, rateLimitResponse } from "@/lib/rate-limit";
 
-
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ token: string }> }
 ) {
-  
   const ip = request.headers.get("x-forwarded-for") || "127.0.0.1";
   if (!(await apiLimiter.check(30, `public_${ip}`))) {
     return rateLimitResponse();
@@ -16,7 +14,6 @@ export async function GET(
   try {
     const { token } = await params;
 
-    
     const sharedNote = await prisma.sharedNote.findUnique({
       where: { token },
       include: {
@@ -41,7 +38,6 @@ export async function GET(
       );
     }
 
-    
     if (!sharedNote.is_public) {
       return NextResponse.json(
         { error: "This note is no longer shared" },
@@ -49,7 +45,6 @@ export async function GET(
       );
     }
 
-    
     if (sharedNote.expires_at && new Date(sharedNote.expires_at) < new Date()) {
       return NextResponse.json(
         { error: "This share link has expired" },
@@ -57,17 +52,13 @@ export async function GET(
       );
     }
 
-    
     prisma.sharedNote
       .update({
         where: { id: sharedNote.id },
         data: { view_count: { increment: 1 } },
       })
-      .catch(() => {
-        
-      });
+      .catch(() => {});
 
-    
     return NextResponse.json({
       id: sharedNote.note.id,
       title: sharedNote.note.title,

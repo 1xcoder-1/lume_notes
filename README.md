@@ -56,8 +56,8 @@ To make the real-time text synchronization work perfectly, the following key tec
     Built on `LiveblocksYjsProvider`, the application utilizes Yjs for character-by-character conflict resolution. This ensures that simultaneous edits to the same paragraph merge seamlessly without data loss.
 
 3.  **Collaborative Tiptap Extensions**:
-    *   **Collaboration**: Synchronizes the editor's content directly with the Yjs shared document.
-    *   **CollaborationCursor**: Provides real-time visual feedback of other users' cursor positions and selection areas.
+    - **Collaboration**: Synchronizes the editor's content directly with the Yjs shared document.
+    - **CollaborationCursor**: Provides real-time visual feedback of other users' cursor positions and selection areas.
 
 4.  **Presence-Based Title Sync**:
     The note heading (title) is synchronized via Liveblocks **Presence**. This allows the main input field to broadcast title changes character-by-character to all other room participants instantly.
@@ -75,9 +75,9 @@ To make the real-time text synchronization work perfectly, the following key tec
 | **Authentication**  | NextAuth.js                                |
 | **Styling**         | Tailwind CSS + shadcn/ui                   |
 | **Testing**         | Jest (Unit/Integration) + Playwright (E2E) |
-| **Real-Time Sync**    | Liveblocks + Yjs                          |
-| **Deployment**       | Vercel                                     |
-| **Package Manager**  | pnpm                                       |
+| **Real-Time Sync**  | Liveblocks + Yjs                           |
+| **Deployment**      | Vercel                                     |
+| **Package Manager** | pnpm                                       |
 
 ## Getting Started
 
@@ -328,7 +328,7 @@ docs(readme): update installation instructions
 | Organization   | `/api/organization/create`    | POST     | Create a new organization and assign current user as admin    |
 | Organization   | `/api/organization/invite`    | POST     | Send invitation emails to join the organization               |
 | Organization   | `/api/organization/stats`     | GET      | Get organization stats and member permissions                 |
-| Organization   | `/api/organization/update`    | PUT      | Update organization settings (Admin only)                      |
+| Organization   | `/api/organization/update`    | PUT      | Update organization settings (Admin only)                     |
 | Tenant         | `/api/tenant`                 | GET      | Get current tenant information including plan and usage       |
 | Tenants        | `/api/tenants/:slug/upgrade`  | POST     | Upgrade tenant to Pro plan (admin only)                       |
 | Health Check   | `/api/health`                 | GET      | Service health check endpoint                                 |

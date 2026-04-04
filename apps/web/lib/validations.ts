@@ -1,6 +1,5 @@
 import { z } from "zod";
 
-
 export const loginSchema = z.object({
   email: z
     .string()
@@ -84,7 +83,6 @@ export const updateOrganizationSchema = z.object({
   members_can_share: z.boolean().optional(),
 });
 
-
 const baseNoteSchema = z.object({
   title: z
     .string()
@@ -100,18 +98,17 @@ export const createNoteSchema = baseNoteSchema.refine(
   data => data.title && data.content,
   {
     message: "Title and content required",
-    path: ["title"], 
+    path: ["title"],
   }
 );
 
 export const updateNoteSchema = baseNoteSchema.refine(
-  data => (
-    data.title !== undefined || 
-    data.content !== undefined || 
-    data.tags !== undefined || 
+  data =>
+    data.title !== undefined ||
+    data.content !== undefined ||
+    data.tags !== undefined ||
     data.folder !== undefined ||
-    data.folderId !== undefined
-  ),
+    data.folderId !== undefined,
   {
     message: "At least one field to update is required",
     path: ["title"],

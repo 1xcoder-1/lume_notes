@@ -38,7 +38,6 @@ export async function POST(
       data: { plan: "pro" },
     });
 
-    
     const updatedTenant = await prisma.tenant.findUnique({
       where: { slug },
       select: { slug: true, name: true, plan: true },

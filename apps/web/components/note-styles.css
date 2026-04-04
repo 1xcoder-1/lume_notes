@@ -1,5 +1,4 @@
 @layer components {
-  
   .tiptap {
     color: var(--foreground);
     max-width: none;
@@ -14,7 +13,6 @@
     margin-bottom: 0;
   }
 
-  
   .tiptap p {
     margin: 1rem 0;
     line-height: 1.7;
@@ -28,7 +26,6 @@
     margin-bottom: 0;
   }
 
-  
   .tiptap ul,
   .tiptap ol {
     padding: 0 1rem;
@@ -54,7 +51,6 @@
     margin: 0.25em 0;
   }
 
-  
   .tiptap ul ul,
   .tiptap ol ol,
   .tiptap ul ol,
@@ -62,7 +58,6 @@
     margin: 0.5rem 0 0.5rem 1.5rem;
   }
 
-  
   .tiptap h1,
   .tiptap h2,
   .tiptap h3,
@@ -115,7 +110,6 @@
     font-weight: 600;
   }
 
-  
   .tiptap code {
     background-color: var(--muted);
     color: var(--foreground);
@@ -147,7 +141,6 @@
     border-radius: 0;
   }
 
-  
   .tiptap blockquote {
     border-left: 4px solid var(--primary);
     margin: 1.5rem 0;
@@ -163,7 +156,6 @@
     margin: 0.5rem 0;
   }
 
-  
   .tiptap .callout {
     border: 1px solid var(--border);
     border-radius: 0.5rem;
@@ -205,11 +197,7 @@
     gap: 0.5rem;
   }
 
-  
-
-  
   .toolbar-inner > * {
-    
     flex: 0 0 auto;
   }
 
@@ -219,7 +207,6 @@
     margin: 2rem 0;
   }
 
-  
   .tiptap a {
     color: var(--primary);
     text-decoration: underline;
@@ -233,12 +220,10 @@
     opacity: 0.8;
   }
 
-  
   .tiptap:focus {
     outline: none;
   }
 
-  
   .tiptap strong {
     font-weight: 600;
     color: var(--foreground);
@@ -254,7 +239,6 @@
     text-decoration: underline;
   }
 
-  
   .tiptap sup,
   .tiptap sub {
     font-size: 0.75em;
@@ -271,18 +255,15 @@
     bottom: -0.25em;
   }
 
-  
   .tiptap mark {
-    
     background-color: var(--chart-1);
-    
+
     color: #ffffff !important;
     padding: 0.125rem 0.25rem;
     border-radius: 0.25rem;
     font-weight: 500;
   }
 
-  
   .tiptap ul[data-type="taskList"] {
     list-style: none;
     padding: 0;
@@ -346,7 +327,6 @@
     cursor: text;
   }
 
-  
   .tiptap table {
     display: block;
     width: 100%;
@@ -362,7 +342,6 @@
     border: 1px solid var(--border);
   }
 
-  
   .tiptap table::-webkit-scrollbar {
     height: 8px;
   }
@@ -399,16 +378,14 @@
     opacity: 0.3;
   }
 
-  
   .tiptap img {
     max-width: 100%;
     height: auto;
     border-radius: 0.5rem;
     margin: 1rem 0;
-    display: block; 
+    display: block;
   }
 
-  
   .tiptap img[style*="text-align: left"] {
     margin-left: 0;
     margin-right: auto;
@@ -424,7 +401,6 @@
     margin-right: 0;
   }
 
-  
   .tiptap .is-editor-empty:first-child::before {
     color: var(--muted-foreground);
     content: attr(data-placeholder);
@@ -433,7 +409,6 @@
     pointer-events: none;
   }
 
-  
   .ProseMirror-focused {
     outline: none;
   }
@@ -452,7 +427,6 @@
     cursor: pointer;
   }
 
-  
   .tiptap::-webkit-scrollbar {
     width: 6px;
   }
@@ -473,7 +447,6 @@
     opacity: 0.5;
   }
 
-  
   .collaboration-cursor__caret {
     border-left: 2px solid;
     border-right: none;
@@ -485,8 +458,7 @@
     height: 1.25rem;
   }
 
-  
   .collaboration-cursor__label {
-    display: none; 
+    display: none;
   }
 }

@@ -33,7 +33,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  
   if (!(await apiLimiter.check(10, session.user.id))) {
     return rateLimitResponse();
   }
@@ -41,7 +40,6 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
-    
     const validationResult = createNoteSchema.safeParse(body);
     if (!validationResult.success) {
       const errorMessage =
@@ -51,7 +49,6 @@ export async function POST(request: NextRequest) {
 
     const { title, content, folder, folderId } = validationResult.data;
 
-    
     const tenant = await prisma.tenant.findUnique({
       where: { id: session.user.tenantId },
     });
@@ -61,7 +58,10 @@ export async function POST(request: NextRequest) {
     }
 
     if (session.user.role === "member" && !(tenant as any).members_can_create) {
-      return NextResponse.json({ error: "Access denied: Members cannot create notes" }, { status: 403 });
+      return NextResponse.json(
+        { error: "Access denied: Members cannot create notes" },
+        { status: 403 }
+      );
     }
 
     if (tenant.plan === "free") {

@@ -8,7 +8,6 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
-    
     const validationResult = forgotPasswordSchema.safeParse(body);
     if (!validationResult.success) {
       const errorMessage =
@@ -18,18 +17,14 @@ export async function POST(request: NextRequest) {
 
     const { email } = validationResult.data;
 
-    
     const user = await prisma.user.findUnique({
       where: { email },
     });
 
-    
     if (user) {
-      
       const token = randomBytes(32).toString("hex");
-      const expires = new Date(Date.now() + 60 * 60 * 1000); 
+      const expires = new Date(Date.now() + 60 * 60 * 1000);
 
-      
       await prisma.verificationToken.create({
         data: {
           identifier: `reset-${email}`,
@@ -38,7 +33,6 @@ export async function POST(request: NextRequest) {
         },
       });
 
-      
       await sendPasswordResetEmail(email, token);
     }
 

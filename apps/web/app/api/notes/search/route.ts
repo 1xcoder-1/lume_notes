@@ -9,7 +9,6 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  
   if (!(await apiLimiter.check(20, session.user.id))) {
     return rateLimitResponse();
   }
@@ -23,9 +22,14 @@ export async function GET(request: NextRequest) {
     const endDate = searchParams.get("endDate");
     const authorId = searchParams.get("authorId");
 
-    
-    if (!sanitizedQuery && (!tags || tags.length === 0) && !startDate && !endDate && !authorId) {
-       return NextResponse.json([]);
+    if (
+      !sanitizedQuery &&
+      (!tags || tags.length === 0) &&
+      !startDate &&
+      !endDate &&
+      !authorId
+    ) {
+      return NextResponse.json([]);
     }
 
     const where: any = {
@@ -44,7 +48,6 @@ export async function GET(request: NextRequest) {
       if (endDate) where.created_at.lte = new Date(endDate);
     }
 
-    
     const notes = await prisma.note.findMany({
       where,
       include: {
@@ -54,17 +57,15 @@ export async function GET(request: NextRequest) {
     });
 
     if (!sanitizedQuery) {
-       return NextResponse.json(notes.slice(0, 20));
+      return NextResponse.json(notes.slice(0, 20));
     }
 
-    
     const escapeRegExp = (string: string) => {
       return string.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
     };
-    
-    const searchRegex = new RegExp(`\\b${escapeRegExp(sanitizedQuery)}`, 'i');
 
-    
+    const searchRegex = new RegExp(`\\b${escapeRegExp(sanitizedQuery)}`, "i");
+
     const extractPlainText = (contentItem: any): string => {
       if (!contentItem) return "";
       if (typeof contentItem === "string") return contentItem;
@@ -80,22 +81,19 @@ export async function GET(request: NextRequest) {
       return "";
     };
 
-    
     const filteredNotes = notes
       .filter(note => {
-        
         const titleMatch = searchRegex.test(note.title);
-        
-        
+
         let contentMatch = false;
         if (typeof note.content === "object" && note.content !== null) {
-           const plainText = extractPlainText(note.content);
-           contentMatch = searchRegex.test(plainText);
+          const plainText = extractPlainText(note.content);
+          contentMatch = searchRegex.test(plainText);
         }
-        
+
         return titleMatch || contentMatch;
       })
-      
+
       .sort((a, b) => {
         const aTitle = searchRegex.test(a.title);
         const bTitle = searchRegex.test(b.title);

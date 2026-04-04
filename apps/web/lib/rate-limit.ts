@@ -48,7 +48,8 @@ export const rateLimitResponse = () => {
   return new Response(
     JSON.stringify({
       error: "Too Many Requests",
-      message: "Please slow down. You have reached your API limit for this minute.",
+      message:
+        "Please slow down. You have reached your API limit for this minute.",
     }),
     {
       status: 429,

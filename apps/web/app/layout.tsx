@@ -20,7 +20,8 @@ export const metadata = {
     default: "Lume Notes",
     template: "%s | Lume Notes",
   },
-  description: "Advanced note-taking for teams. Smart writing assistance, secure organization, and seamless collaboration.",
+  description:
+    "Advanced note-taking for teams. Smart writing assistance, secure organization, and seamless collaboration.",
   icons: {
     icon: "/favicon.ico",
     shortcut: "/favicon.ico",
@@ -42,7 +43,10 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.mjs" type="module"></script>
+        <script
+          src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.mjs"
+          type="module"
+        ></script>
       </head>
       <body
         className={`${fontSans.variable} ${fontMono.variable} font-sans antialiased`}

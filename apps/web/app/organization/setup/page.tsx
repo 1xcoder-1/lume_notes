@@ -41,7 +41,6 @@ export default function OrganizationSetupPage() {
       return;
     }
 
-    
     if ((session?.user as any)?.tenantId) {
       router.push("/");
       return;
@@ -53,7 +52,6 @@ export default function OrganizationSetupPage() {
   const handleCreateOrganization = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    
     const validationResult = createOrganizationSchema.safeParse({
       name: organizationName.trim(),
     });
@@ -79,7 +77,7 @@ export default function OrganizationSetupPage() {
 
       if (response.ok) {
         const data = await response.json();
-        
+
         await update({
           user: {
             tenantId: data.user.tenantId,
@@ -181,21 +179,21 @@ export default function OrganizationSetupPage() {
   }
 
   return (
-    <div className="bg-background relative flex min-h-screen items-center justify-center p-4 overflow-hidden">
+    <div className="bg-background relative flex min-h-screen items-center justify-center overflow-hidden p-4">
       {}
-      <div className="fixed inset-0 z-0 pointer-events-none opacity-[0.03] overflow-hidden">
-        <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-primary rounded-full blur-[120px]" />
-        <div className="absolute bottom-[-10%] left-[-10%] w-[30%] h-[30%] bg-blue-500 rounded-full blur-[100px]" />
+      <div className="pointer-events-none fixed inset-0 z-0 overflow-hidden opacity-[0.03]">
+        <div className="bg-primary absolute top-[-10%] right-[-10%] h-[40%] w-[40%] rounded-full blur-[120px]" />
+        <div className="absolute bottom-[-10%] left-[-10%] h-[30%] w-[30%] rounded-full bg-blue-500 blur-[100px]" />
       </div>
 
-      <div className="relative z-10 animate-fade-up animate-duration-250 w-full max-w-md">
-        <div className="bg-card/50 backdrop-blur-sm border border-border/50 rounded-2xl p-8 shadow-2xl">
+      <div className="animate-fade-up animate-duration-250 relative z-10 w-full max-w-md">
+        <div className="bg-card/50 border-border/50 rounded-2xl border p-8 shadow-2xl backdrop-blur-sm">
           <form
             onSubmit={handleCreateOrganization}
             className="flex flex-col gap-6"
           >
             <div className="flex flex-col items-center gap-4 text-center">
-              <div className="bg-primary/10 h-16 w-16 rounded-2xl flex items-center justify-center mb-2">
+              <div className="bg-primary/10 mb-2 flex h-16 w-16 items-center justify-center rounded-2xl">
                 <img
                   src="/logo.svg"
                   alt="lume notes Logo"
@@ -203,23 +201,28 @@ export default function OrganizationSetupPage() {
                 />
               </div>
               <div className="space-y-2">
-                <h1 className="text-3xl font-extrabold tracking-tight">Create Organization</h1>
-                <p className="text-muted-foreground text-balance text-sm">
-                  Set up your workspace to start collaborating on notes with your
-                  team.
+                <h1 className="text-3xl font-extrabold tracking-tight">
+                  Create Organization
+                </h1>
+                <p className="text-muted-foreground text-sm text-balance">
+                  Set up your workspace to start collaborating on notes with
+                  your team.
                 </p>
               </div>
             </div>
             <div className="grid gap-6">
               <div className="grid gap-3">
-                <Label htmlFor="orgName" className="text-sm font-semibold uppercase tracking-wider text-muted-foreground">
+                <Label
+                  htmlFor="orgName"
+                  className="text-muted-foreground text-sm font-semibold tracking-wider uppercase"
+                >
                   Organization Name
                 </Label>
                 <Input
                   id="orgName"
                   type="text"
                   placeholder="Acme Corp"
-                  className="h-12 text-lg rounded-xl border-border/50 focus:ring-primary/20"
+                  className="border-border/50 focus:ring-primary/20 h-12 rounded-xl text-lg"
                   value={organizationName}
                   onChange={e => setOrganizationName(e.target.value)}
                   disabled={loading}
@@ -232,7 +235,10 @@ export default function OrganizationSetupPage() {
               </div>
 
               {error && (
-                <Alert variant="destructive" className="rounded-xl bg-destructive/5 border-destructive/20 text-destructive">
+                <Alert
+                  variant="destructive"
+                  className="bg-destructive/5 border-destructive/20 text-destructive rounded-xl"
+                >
                   <AlertTriangle className="h-4 w-4" />
                   <AlertDescription>{error}</AlertDescription>
                 </Alert>
@@ -240,12 +246,12 @@ export default function OrganizationSetupPage() {
 
               <Button
                 type="submit"
-                className="w-full h-12 text-lg font-bold rounded-xl shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98]"
+                className="h-12 w-full rounded-xl text-lg font-bold shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98]"
                 disabled={loading || !organizationName.trim()}
               >
                 {loading ? (
                   <>
-                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Creating Workspace...
                   </>
                 ) : (
@@ -258,7 +264,7 @@ export default function OrganizationSetupPage() {
             </div>
           </form>
         </div>
-        <p className="mt-8 text-center text-sm text-muted-foreground">
+        <p className="text-muted-foreground mt-8 text-center text-sm">
           You will be the <strong>administrator</strong> of this organization.
         </p>
       </div>

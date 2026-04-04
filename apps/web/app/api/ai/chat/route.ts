@@ -18,42 +18,56 @@ export async function POST(req: Request) {
   }
 
   if (!process.env.GOOGLE_GENERATIVE_AI_API_KEY) {
-    return new Response("AI Assistant is currently unavailable on this server.", { status: 503 });
+    return new Response(
+      "AI Assistant is currently unavailable on this server.",
+      { status: 503 }
+    );
   }
 
   try {
     const { prompt, option, context, fileData, mimeType } = await req.json();
 
-    let systemPrompt = "You are a helpful AI writing assistant specifically designed to help users with their notes in 'Lume Notes'. " +
+    let systemPrompt =
+      "You are a helpful AI writing assistant specifically designed to help users with their notes in 'Lume Notes'. " +
       "IMPORTANT: Always return your response as plain text only. Do NOT use any Markdown formatting such as bolding (**), headers (#), or lists. " +
       "CRITICAL: Do NOT use dashes (-) or hyphens at all. Never place a dash between two words or letters (e.g., use 'high quality' instead of 'high-quality'). " +
       "Do not use dashes for bullet points. Just provide the text directly that should go into the note.";
 
     if (option === "summarize") {
-      systemPrompt += " Provide a concise, high quality summary of the following text, focusing on the key takeaways and actionable points:";
+      systemPrompt +=
+        " Provide a concise, high quality summary of the following text, focusing on the key takeaways and actionable points:";
     } else if (option === "rewrite") {
-      systemPrompt += " Rewrite the following text to be more polished, clear, and professional, while strictly maintaining the same core meaning. Use a modern and elegant tone suitable for a note-taking application:";
+      systemPrompt +=
+        " Rewrite the following text to be more polished, clear, and professional, while strictly maintaining the same core meaning. Use a modern and elegant tone suitable for a note-taking application:";
     } else if (option === "brainstorm") {
-      systemPrompt += " Generate creative, innovative brainstorm points and suggestions based on this topic. Structure your response with plain text lines, avoid markdown bullets:";
+      systemPrompt +=
+        " Generate creative, innovative brainstorm points and suggestions based on this topic. Structure your response with plain text lines, avoid markdown bullets:";
     } else if (option === "improve") {
-      systemPrompt += " Optimize the grammar, tone, and flow of this text to make it sound exceptionally well written and engaging. Keep the core intent identical:";
+      systemPrompt +=
+        " Optimize the grammar, tone, and flow of this text to make it sound exceptionally well written and engaging. Keep the core intent identical:";
     } else if (option === "tag") {
-      systemPrompt += " Analyze the following text and suggest 3 to 5 extremely relevant, concise tags. Return ONLY the tags separated by commas, with no other text, headers, or dashes:";
+      systemPrompt +=
+        " Analyze the following text and suggest 3 to 5 extremely relevant, concise tags. Return ONLY the tags separated by commas, with no other text, headers, or dashes:";
     } else if (option === "simplify") {
-      systemPrompt += " Rephrase the following text to use simpler language and shorter sentences, making it much easier to understand while keeping all key information:";
+      systemPrompt +=
+        " Rephrase the following text to use simpler language and shorter sentences, making it much easier to understand while keeping all key information:";
     } else if (option === "actions") {
-      systemPrompt += " Extract a clear list of action items, tasks, or next steps from the following text. Present them as simple text lines without bullets or dashes:";
+      systemPrompt +=
+        " Extract a clear list of action items, tasks, or next steps from the following text. Present them as simple text lines without bullets or dashes:";
     } else if (option === "grammar") {
-      systemPrompt += " Carefully check the following text for any grammatical errors, spelling mistakes, or punctuation issues. Provide the corrected text directly, maintaining the original style and tone:";
+      systemPrompt +=
+        " Carefully check the following text for any grammatical errors, spelling mistakes, or punctuation issues. Provide the corrected text directly, maintaining the original style and tone:";
     } else if (option === "translate") {
-      systemPrompt += " Translate the following text to English, ensuring a natural and professional tone while preserving the original meaning and intent:";
+      systemPrompt +=
+        " Translate the following text to English, ensuring a natural and professional tone while preserving the original meaning and intent:";
     } else {
-      systemPrompt += " Answer the following prompt thoughtfully and concisely, incorporating any provided context where relevant.";
+      systemPrompt +=
+        " Answer the following prompt thoughtfully and concisely, incorporating any provided context where relevant.";
     }
 
     const model = genAI.getGenerativeModel({
-      model: "gemini-1.5-flash",
-      systemInstruction: systemPrompt
+      model: "gemini-2.5-flash",
+      systemInstruction: systemPrompt,
     });
 
     const userPrompt = `Note Context:\n${context || "No description or content yet."}\n\nExecution:\n${prompt}`;
@@ -63,8 +77,8 @@ export async function POST(req: Request) {
       contents.push({
         inlineData: {
           data: fileData,
-          mimeType: mimeType
-        }
+          mimeType: mimeType,
+        },
       });
     }
 
@@ -101,4 +115,3 @@ export async function POST(req: Request) {
     return new Response("INTERNAL_SERVER_ERROR", { status: 500 });
   }
 }
-

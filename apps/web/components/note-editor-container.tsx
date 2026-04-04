@@ -3,7 +3,12 @@
 import React, { useState, useEffect } from "react";
 import { Skeleton } from "@workspace/ui/components/skeleton";
 import * as Y from "yjs";
-import { LiveblocksProvider, RoomProvider, ClientSideSuspense, useRoom } from "@liveblocks/react/suspense";
+import {
+  LiveblocksProvider,
+  RoomProvider,
+  ClientSideSuspense,
+  useRoom,
+} from "@liveblocks/react/suspense";
 import { LiveblocksYjsProvider } from "@liveblocks/yjs";
 import type { Note } from "@/lib/api";
 import { NoteEditorInner } from "./note-editor-inner";
@@ -22,17 +27,20 @@ export interface NoteEditorContainerProps {
   readOnly?: boolean;
 }
 
-export const NoteEditorContainer = React.memo(function NoteEditorContainer(props: NoteEditorContainerProps) {
+export const NoteEditorContainer = React.memo(function NoteEditorContainer(
+  props: NoteEditorContainerProps
+) {
   return (
-    <LiveblocksProvider 
+    <LiveblocksProvider
       publicApiKey={process.env.NEXT_PUBLIC_LIVEBLOCKS_PUBLIC_KEY!}
       largeMessageStrategy="split"
     >
-      <RoomProvider id={`note:${props.noteId}`} initialPresence={{ cursor: null, title: "" }}>
+      <RoomProvider
+        id={`note:${props.noteId}`}
+        initialPresence={{ cursor: null, title: "" }}
+      >
         <ClientSideSuspense fallback={<EditorSkeleton />}>
-          {() => (
-            <LiveblocksProviderWrapper key={props.noteId} {...props} />
-          )}
+          {() => <LiveblocksProviderWrapper key={props.noteId} {...props} />}
         </ClientSideSuspense>
       </RoomProvider>
     </LiveblocksProvider>
@@ -46,7 +54,7 @@ function LiveblocksProviderWrapper(props: any & { noteId: string }) {
 
   useEffect(() => {
     // When switching rooms (noteId changes), we MUST use a fresh Y.Doc
-    // Since this component is re-rendered by the RoomProvider change, 
+    // Since this component is re-rendered by the RoomProvider change,
     // and ideally we want a clean state, we can use the useEffect to manage the provider.
     const yProvider = new LiveblocksYjsProvider(room, doc);
     setProvider(yProvider);
@@ -60,13 +68,20 @@ function LiveblocksProviderWrapper(props: any & { noteId: string }) {
   if (!provider) return <EditorSkeleton />;
 
   // Using key={props.noteId} ensures the entire editor re-mounts on note switch
-  return <NoteEditorInner key={props.noteId} doc={doc} provider={provider} {...props} />;
+  return (
+    <NoteEditorInner
+      key={props.noteId}
+      doc={doc}
+      provider={provider}
+      {...props}
+    />
+  );
 }
 
 function EditorSkeleton() {
   return (
     <div className="flex h-full flex-col">
-      <div className="flex items-center gap-2 px-4 pb-2 pt-4">
+      <div className="flex items-center gap-2 px-4 pt-4 pb-2">
         <Skeleton className="h-10 flex-1" />
         <Skeleton className="h-8 w-16" />
       </div>

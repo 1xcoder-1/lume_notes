@@ -13,7 +13,17 @@ import { Label } from "@workspace/ui/components/label";
 import { Badge } from "@workspace/ui/components/badge";
 import { Input } from "@workspace/ui/components/input";
 import { ScrollArea } from "@workspace/ui/components/scroll-area";
-import { X, PanelLeft, Plus as PlusIcon, Tags, Calendar, FileText, Folder as FolderIcon, ChevronDown, Check } from "lucide-react";
+import {
+  X,
+  PanelLeft,
+  Plus as PlusIcon,
+  Tags,
+  Calendar,
+  FileText,
+  Folder as FolderIcon,
+  ChevronDown,
+  Check,
+} from "lucide-react";
 import type { Note, Folder } from "@/lib/api";
 
 export interface NoteEditorSidebarProps {
@@ -46,18 +56,23 @@ export const NoteEditorSidebar = React.memo(function NoteEditorSidebar({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   return (
-    <aside 
+    <aside
       className={cn(
-        "hidden lg:flex flex-col border-r bg-card/10 transition-all duration-300 overflow-hidden",
-        isLeftSidebarOpen ? "w-80 opacity-100" : "w-0 opacity-0 border-r-0"
+        "bg-card/10 hidden flex-col overflow-hidden border-r transition-all duration-300 lg:flex",
+        isLeftSidebarOpen ? "w-80 opacity-100" : "w-0 border-r-0 opacity-0"
       )}
     >
-      <div className="flex items-center justify-between p-4 border-b">
+      <div className="flex items-center justify-between border-b p-4">
         <div className="flex items-center gap-2">
-          <PanelLeft className="size-4 text-primary" />
+          <PanelLeft className="text-primary size-4" />
           <h3 className="text-sm font-semibold">Note Details & Tags</h3>
         </div>
-        <Button variant="ghost" size="icon" className="size-8" onClick={() => setIsLeftSidebarOpen(false)}>
+        <Button
+          variant="ghost"
+          size="icon"
+          className="size-8"
+          onClick={() => setIsLeftSidebarOpen(false)}
+        >
           <X className="size-4" />
         </Button>
       </div>
@@ -66,22 +81,22 @@ export const NoteEditorSidebar = React.memo(function NoteEditorSidebar({
         <div className="space-y-8">
           {}
           <div className="space-y-3">
-            <Label className="text-[12px] font-bold tracking-normal text-muted-foreground block">
+            <Label className="text-muted-foreground block text-[12px] font-bold tracking-normal">
               Folder Location
             </Label>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
+                <Button
+                  variant="outline"
+                  size="sm"
                   disabled={readOnly}
                   className={cn(
-                    "w-full justify-between h-9 text-xs font-normal shadow-sm bg-card transition-all hover:bg-accent hover:text-accent-foreground border-border/60 focus-visible:ring-primary/20",
+                    "bg-card hover:bg-accent hover:text-accent-foreground border-border/60 focus-visible:ring-primary/20 h-9 w-full justify-between text-xs font-normal shadow-sm transition-all",
                     note.folder && "border-border shadow-inner"
                   )}
                 >
                   <div className="flex items-center gap-2">
-                    <FolderIcon className="size-3.5 text-muted-foreground/60" />
+                    <FolderIcon className="text-muted-foreground/60 size-3.5" />
                     <span className="truncate">
                       {note.folder || "Main (Unassigned)"}
                     </span>
@@ -89,82 +104,93 @@ export const NoteEditorSidebar = React.memo(function NoteEditorSidebar({
                   <ChevronDown className="size-3.5 opacity-50" />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent className="w-64 max-h-[300px] overflow-y-auto shadow-lg backdrop-blur-xl bg-background/95 border-primary/10">
+              <DropdownMenuContent className="bg-background/95 border-primary/10 max-h-[300px] w-64 overflow-y-auto shadow-lg backdrop-blur-xl">
                 <DropdownMenuGroup>
-                   {note.folder && (
-                     <>
-                       <DropdownMenuItem 
-                         onClick={() => handleUpdateFolder(null)} 
-                         className="text-xs cursor-pointer rounded-sm mb-1"
-                       >
-                         <div className="flex items-center justify-between w-full">
-                           <span className="font-medium text-muted-foreground hover:text-foreground">Move to Main</span>
-                           <Check className="size-3 text-muted-foreground ml-2 opacity-0 group-hover:opacity-100" />
-                         </div>
-                       </DropdownMenuItem>
-                       <DropdownMenuSeparator className="opacity-50" />
-                     </>
-                   )}
-                   {folders.length === 0 ? (
-                     <div className="px-3 py-4 text-center text-[10px] text-muted-foreground italic">
-                       No folders created yet.
-                     </div>
-                   ) : (
-                     folders.map(f => (
-                       <DropdownMenuItem 
-                         key={f.id} 
-                         onClick={() => handleUpdateFolder(f.name)}
-                         className={cn(
-                           "text-xs transition-colors cursor-pointer rounded-sm my-0.5", 
-                           note.folder === f.name 
-                             ? "bg-accent text-foreground font-semibold" 
-                             : "hover:bg-accent"
-                         )}
-                       >
-                         <div className="flex items-center justify-between w-full">
-                           <div className="flex items-center gap-2">
-                             <div className={cn(
-                               "size-1.5 rounded-full",
-                               note.folder === f.name ? "bg-primary" : "bg-muted-foreground/30"
-                             )} />
-                             <span className="truncate">{f.name}</span>
-                           </div>
-                           {note.folder === f.name && <Check className="size-3 text-muted-foreground ml-2" />}
-                         </div>
-                       </DropdownMenuItem>
-                     ))
-                   )}
+                  {note.folder && (
+                    <>
+                      <DropdownMenuItem
+                        onClick={() => handleUpdateFolder(null)}
+                        className="mb-1 cursor-pointer rounded-sm text-xs"
+                      >
+                        <div className="flex w-full items-center justify-between">
+                          <span className="text-muted-foreground hover:text-foreground font-medium">
+                            Move to Main
+                          </span>
+                          <Check className="text-muted-foreground ml-2 size-3 opacity-0 group-hover:opacity-100" />
+                        </div>
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator className="opacity-50" />
+                    </>
+                  )}
+                  {folders.length === 0 ? (
+                    <div className="text-muted-foreground px-3 py-4 text-center text-[10px] italic">
+                      No folders created yet.
+                    </div>
+                  ) : (
+                    folders.map(f => (
+                      <DropdownMenuItem
+                        key={f.id}
+                        onClick={() => handleUpdateFolder(f.name)}
+                        className={cn(
+                          "my-0.5 cursor-pointer rounded-sm text-xs transition-colors",
+                          note.folder === f.name
+                            ? "bg-accent text-foreground font-semibold"
+                            : "hover:bg-accent"
+                        )}
+                      >
+                        <div className="flex w-full items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <div
+                              className={cn(
+                                "size-1.5 rounded-full",
+                                note.folder === f.name
+                                  ? "bg-primary"
+                                  : "bg-muted-foreground/30"
+                              )}
+                            />
+                            <span className="truncate">{f.name}</span>
+                          </div>
+                          {note.folder === f.name && (
+                            <Check className="text-muted-foreground ml-2 size-3" />
+                          )}
+                        </div>
+                      </DropdownMenuItem>
+                    ))
+                  )}
                 </DropdownMenuGroup>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
 
-          <div className="border-t border-border/20 pt-1" />
+          <div className="border-border/20 border-t pt-1" />
 
           {}
           <div className="space-y-3">
             <div className="flex items-center justify-between">
-              <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+              <Label className="text-muted-foreground text-[10px] font-bold tracking-wider uppercase">
                 Tags
               </Label>
-              <Badge variant="outline" className="text-[10px] py-0 px-1.5 opacity-60">
+              <Badge
+                variant="outline"
+                className="px-1.5 py-0 text-[10px] opacity-60"
+              >
                 {note.tags?.length || 0}
               </Badge>
             </div>
-            
-            <div className="flex flex-wrap gap-2 min-h-8">
+
+            <div className="flex min-h-8 flex-wrap gap-2">
               {note.tags && note.tags.length > 0 ? (
                 note.tags.map((tag, i) => (
-                  <Badge 
-                    key={i} 
-                    variant="secondary" 
-                    className="pl-2 pr-1 py-1 text-xs gap-1 bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 hover:border-primary/30 transition-all group"
+                  <Badge
+                    key={i}
+                    variant="secondary"
+                    className="bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 hover:border-primary/30 group gap-1 py-1 pr-1 pl-2 text-xs transition-all"
                   >
                     {tag}
                     {!readOnly && (
-                      <button 
+                      <button
                         onClick={() => handleRemoveTag(tag)}
-                        className="p-0.5 rounded-full hover:bg-primary/20 opacity-40 hover:opacity-100 transition-opacity"
+                        className="hover:bg-primary/20 rounded-full p-0.5 opacity-40 transition-opacity hover:opacity-100"
                       >
                         <X className="size-3" />
                       </button>
@@ -172,25 +198,29 @@ export const NoteEditorSidebar = React.memo(function NoteEditorSidebar({
                   </Badge>
                 ))
               ) : (
-                <p className="text-xs text-muted-foreground italic">No tags assigned</p>
+                <p className="text-muted-foreground text-xs italic">
+                  No tags assigned
+                </p>
               )}
             </div>
 
             <form onSubmit={handleAddTag} className="flex gap-2 pt-2">
               <div className="relative flex-1">
                 <Input
-                  placeholder={readOnly ? "Tags are locked" : "Add manual tag..."}
+                  placeholder={
+                    readOnly ? "Tags are locked" : "Add manual tag..."
+                  }
                   value={newTag}
                   onChange={e => setNewTag(e.target.value)}
-                  className="h-8 text-xs pr-8 focus-visible:ring-primary/30"
+                  className="focus-visible:ring-primary/30 h-8 pr-8 text-xs"
                   disabled={readOnly}
                 />
-                <Tags className="absolute right-2.5 top-2 size-3.5 text-muted-foreground/50" />
+                <Tags className="text-muted-foreground/50 absolute top-2 right-2.5 size-3.5" />
               </div>
-              <Button 
-                type="submit" 
-                size="icon" 
-                className="size-8 bg-primary/10 text-primary hover:bg-primary hover:text-white border-0 transition-all"
+              <Button
+                type="submit"
+                size="icon"
+                className="bg-primary/10 text-primary hover:bg-primary size-8 border-0 transition-all hover:text-white"
                 disabled={!newTag.trim() || readOnly}
               >
                 <PlusIcon className="size-4" />
@@ -199,32 +229,31 @@ export const NoteEditorSidebar = React.memo(function NoteEditorSidebar({
           </div>
 
           {}
-          <div className="space-y-4 pt-4 border-t border-border/40">
+          <div className="border-border/40 space-y-4 border-t pt-4">
             <div className="space-y-1">
-              <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">
+              <Label className="text-muted-foreground block text-[10px] font-bold tracking-wider uppercase">
                 Created
               </Label>
-              <div className="flex items-center gap-2 text-xs text-foreground/80">
-                <Calendar className="size-3 text-muted-foreground" />
+              <div className="text-foreground/80 flex items-center gap-2 text-xs">
+                <Calendar className="text-muted-foreground size-3" />
                 {new Date(note.created_at).toLocaleDateString(undefined, {
-                  dateStyle: 'medium'
+                  dateStyle: "medium",
                 })}
               </div>
             </div>
 
-            <div className="space-y-1 text-xs text-foreground/80">
-              <Label className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">
+            <div className="text-foreground/80 space-y-1 text-xs">
+              <Label className="text-muted-foreground block text-[10px] font-bold tracking-wider uppercase">
                 Last Modified
               </Label>
               <div className="flex items-center gap-2">
-                 <Calendar className="size-3 text-muted-foreground" />
-                 {new Date(note.updated_at).toLocaleString(undefined, {
-                    dateStyle: 'medium',
-                    timeStyle: 'short'
-                 })}
+                <Calendar className="text-muted-foreground size-3" />
+                {new Date(note.updated_at).toLocaleString(undefined, {
+                  dateStyle: "medium",
+                  timeStyle: "short",
+                })}
               </div>
             </div>
-
           </div>
         </div>
       </ScrollArea>

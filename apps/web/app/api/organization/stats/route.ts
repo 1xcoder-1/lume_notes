@@ -13,13 +13,16 @@ export async function GET(request: NextRequest) {
     const { user } = session;
 
     if (user.role !== "admin") {
-       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     const tenantId = (user as any).tenantId;
 
     if (!tenantId) {
-      return NextResponse.json({ error: "No organization found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "No organization found" },
+        { status: 404 }
+      );
     }
 
     const [memberCount, adminCount, tenant] = await Promise.all([
@@ -37,11 +40,11 @@ export async function GET(request: NextRequest) {
       }),
       prisma.tenant.findUnique({
         where: { id: tenantId },
-        select: { 
+        select: {
           name: true,
           members_can_edit: true,
           members_can_create: true,
-          members_can_share: true
+          members_can_share: true,
         } as any,
       }),
     ]);

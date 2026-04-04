@@ -44,12 +44,22 @@ interface AIAssistantProps {
   disabled?: boolean;
 }
 
-export function AIAssistant({ editor, noteId, context, currentTags = [], onUpdateTags, disabled }: AIAssistantProps) {
+export function AIAssistant({
+  editor,
+  noteId,
+  context,
+  currentTags = [],
+  onUpdateTags,
+  disabled,
+}: AIAssistantProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [completion, setCompletion] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [appliedRange, setAppliedRange] = useState<{ from: number, to: number } | null>(null);
+  const [appliedRange, setAppliedRange] = useState<{
+    from: number;
+    to: number;
+  } | null>(null);
 
   const handleAIAction = async (option: string, label: string) => {
     setSelectedOption(label);
@@ -57,21 +67,27 @@ export function AIAssistant({ editor, noteId, context, currentTags = [], onUpdat
     setIsLoading(true);
 
     const selection = editor.state.selection;
-    const selectedText = editor.state.doc.textBetween(selection.from, selection.to, " ");
+    const selectedText = editor.state.doc.textBetween(
+      selection.from,
+      selection.to,
+      " "
+    );
 
     try {
-
       const isSelection = !!selectedText;
       // Filter out any image markers or placeholders to ensure AI stays text-focused
       let textToProcess = isSelection ? selectedText : editor.getText();
-      textToProcess = textToProcess.replace(/\[Image:.*?\]/g, "").replace(/<img.*?>/g, "").trim();
+      textToProcess = textToProcess
+        .replace(/\[Image:.*?\]/g, "")
+        .replace(/<img.*?>/g, "")
+        .trim();
 
       if (!textToProcess) {
-         toast.error("No text found for AI to analyze. Note: AI ignores images.");
-         return;
+        toast.error(
+          "No text found for AI to analyze. Note: AI ignores images."
+        );
+        return;
       }
-
-
 
       if (isSelection) {
         setAppliedRange({ from: selection.from, to: selection.to });
@@ -112,7 +128,9 @@ export function AIAssistant({ editor, noteId, context, currentTags = [], onUpdat
     } catch (error: any) {
       console.error("AI Error:", error);
       if (error.message === "RATE_LIMIT") {
-        toast.error("Global AI limit reached. Please wait a minute before trying again.");
+        toast.error(
+          "Global AI limit reached. Please wait a minute before trying again."
+        );
       } else {
         toast.error("AI Assistant is having trouble. Please check connection.");
       }
@@ -121,17 +139,23 @@ export function AIAssistant({ editor, noteId, context, currentTags = [], onUpdat
     }
   };
 
-
   const applyAIResult = () => {
     if (!completion || (!appliedRange && selectedOption !== "Tag Note")) return;
 
     if (selectedOption === "Tag Note") {
-      const tags = completion.split(",").map(t => t.trim()).filter(Boolean);
+      const tags = completion
+        .split(",")
+        .map(t => t.trim())
+        .filter(Boolean);
       onUpdateTags?.(tags);
     } else if (appliedRange) {
-      editor.chain()
+      editor
+        .chain()
         .focus()
-        .insertContentAt({ from: appliedRange.from, to: appliedRange.to }, completion)
+        .insertContentAt(
+          { from: appliedRange.from, to: appliedRange.to },
+          completion
+        )
         .run();
     }
 
@@ -155,50 +179,58 @@ export function AIAssistant({ editor, noteId, context, currentTags = [], onUpdat
           <Button
             variant="default"
             size="sm"
-            className="h-8 gap-1.5 shadow-sm transition-all hover:shadow-primary/20 hover:scale-[1.02]"
+            className="hover:shadow-primary/20 h-8 gap-1.5 shadow-sm transition-all hover:scale-[1.02]"
             disabled={disabled}
           >
-            <Sparkles className="size-4 animate-pulse fill-primary-foreground/20" />
+            <Sparkles className="fill-primary-foreground/20 size-4 animate-pulse" />
             <span className="text-xs font-semibold">Ask AI</span>
           </Button>
         </PopoverTrigger>
         <PopoverContent
-          className="w-96 p-0 border-primary/20 shadow-2xl bg-popover"
+          className="border-primary/20 bg-popover w-96 p-0 shadow-2xl"
           align="start"
           sideOffset={8}
         >
           {!completion && !isLoading ? (
-            <Command className="border-none shadow-none bg-transparent **:data-[slot=command-input-wrapper]:border-none">
+            <Command className="border-none bg-transparent shadow-none **:data-[slot=command-input-wrapper]:border-none">
               <CommandInput
                 placeholder="What should AI do?"
-                className="focus:ring-0 focus:border-none focus-visible:ring-0 focus-visible:outline-none border-none py-6 h-12"
+                className="h-12 border-none py-6 focus:border-none focus:ring-0 focus-visible:ring-0 focus-visible:outline-none"
               />
               <CommandList>
                 <CommandEmpty>No actions found.</CommandEmpty>
                 <CommandGroup heading="Quick Actions">
                   <CommandItem
-                    onSelect={() => handleAIAction("improve", "Improve Writing")}
+                    onSelect={() =>
+                      handleAIAction("improve", "Improve Writing")
+                    }
                     className="cursor-pointer"
                   >
                     <Type className="mr-2 h-4 w-4 text-blue-500" />
                     <span>Improve Writing</span>
                   </CommandItem>
                   <CommandItem
-                    onSelect={() => handleAIAction("summarize", "Summarize Selection")}
+                    onSelect={() =>
+                      handleAIAction("summarize", "Summarize Selection")
+                    }
                     className="cursor-pointer"
                   >
                     <AlignLeft className="mr-2 h-4 w-4 text-green-500" />
                     <span>Summarize Selection</span>
                   </CommandItem>
                   <CommandItem
-                    onSelect={() => handleAIAction("rewrite", "Professional Rewrite")}
+                    onSelect={() =>
+                      handleAIAction("rewrite", "Professional Rewrite")
+                    }
                     className="cursor-pointer"
                   >
                     <Briefcase className="mr-2 h-4 w-4 text-purple-500" />
                     <span>Make it Professional</span>
                   </CommandItem>
                   <CommandItem
-                    onSelect={() => handleAIAction("brainstorm", "Brainstorm Ideas")}
+                    onSelect={() =>
+                      handleAIAction("brainstorm", "Brainstorm Ideas")
+                    }
                     className="cursor-pointer"
                   >
                     <Lightbulb className="mr-2 h-4 w-4 text-yellow-500" />
@@ -222,22 +254,28 @@ export function AIAssistant({ editor, noteId, context, currentTags = [], onUpdat
               </CommandList>
             </Command>
           ) : (
-            <div className="p-4 space-y-4 max-h-[400px] overflow-y-auto">
+            <div className="max-h-[400px] space-y-4 overflow-y-auto p-4">
               <div className="flex items-center justify-between border-b pb-2">
                 <div className="flex items-center gap-2">
-                  <Sparkles className="size-4 text-primary" />
-                  <span className="text-xs font-bold uppercase tracking-wider opacity-60">
+                  <Sparkles className="text-primary size-4" />
+                  <span className="text-xs font-bold tracking-wider uppercase opacity-60">
                     {selectedOption || "AI Result"}
                   </span>
                 </div>
-                {isLoading && <Loader2 className="size-3 animate-spin text-primary" />}
+                {isLoading && (
+                  <Loader2 className="text-primary size-3 animate-spin" />
+                )}
               </div>
 
-              <div className="text-sm leading-relaxed text-foreground/90 whitespace-pre-wrap italic bg-accent/30 p-3 rounded-lg border border-accent">
+              <div className="text-foreground/90 bg-accent/30 border-accent rounded-lg border p-3 text-sm leading-relaxed whitespace-pre-wrap italic">
                 {selectedOption === "Tag Note" && completion ? (
                   <div className="flex flex-wrap gap-1.5 not-italic">
                     {completion.split(",").map((tag, i) => (
-                      <Badge key={i} variant="secondary" className="px-2 py-0.5 bg-primary/10 text-primary border-primary/20">
+                      <Badge
+                        key={i}
+                        variant="secondary"
+                        className="bg-primary/10 text-primary border-primary/20 px-2 py-0.5"
+                      >
                         {tag.trim()}
                       </Badge>
                     ))}
@@ -253,7 +291,7 @@ export function AIAssistant({ editor, noteId, context, currentTags = [], onUpdat
                     size="sm"
                     variant="ghost"
                     onClick={discardAIResult}
-                    className="h-8 text-xs text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                    className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive h-8 text-xs"
                   >
                     <X className="mr-1 size-3" />
                     Discard
@@ -261,10 +299,12 @@ export function AIAssistant({ editor, noteId, context, currentTags = [], onUpdat
                   <Button
                     size="sm"
                     onClick={applyAIResult}
-                    className="h-8 text-xs bg-primary text-primary-foreground"
+                    className="bg-primary text-primary-foreground h-8 text-xs"
                   >
                     <Check className="mr-1 size-3" />
-                    {selectedOption === "Tag Note" ? "Apply Tags" : "Replace / Insert"}
+                    {selectedOption === "Tag Note"
+                      ? "Apply Tags"
+                      : "Replace / Insert"}
                   </Button>
                 </div>
               )}

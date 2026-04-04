@@ -7,13 +7,10 @@ export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
 
-    
     const validationResult = resetPasswordSchema.safeParse(body);
     if (!validationResult.success) {
-      
       const issues = validationResult.error.issues;
 
-      
       const missingToken = !body.token || body.token.trim() === "";
       const missingPassword = !body.password || body.password.trim() === "";
 
@@ -24,7 +21,6 @@ export async function POST(request: NextRequest) {
         );
       }
 
-      
       if (issues.length > 0) {
         const firstIssue = issues[0];
         if (firstIssue) {
@@ -46,7 +42,6 @@ export async function POST(request: NextRequest) {
 
     const { token, password } = validationResult.data;
 
-    
     const resetToken = await prisma.verificationToken.findFirst({
       where: {
         identifier: {
@@ -66,19 +61,15 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    
     const email = resetToken.identifier.replace("reset-", "");
 
-    
     const passwordHash = await bcrypt.hash(password, 12);
 
-    
     await prisma.user.update({
       where: { email },
       data: { password_hash: passwordHash },
     });
 
-    
     await prisma.verificationToken.delete({
       where: {
         identifier_token: {

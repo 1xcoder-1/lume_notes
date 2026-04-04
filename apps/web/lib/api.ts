@@ -1,12 +1,11 @@
-import { 
-  useMutation, 
-  useQuery, 
+import {
+  useMutation,
+  useQuery,
   useQueryClient,
   type UseQueryResult,
-  type UseMutationResult
+  type UseMutationResult,
 } from "@tanstack/react-query";
 import { toast } from "sonner";
-
 
 export interface Note {
   id: string;
@@ -63,7 +62,6 @@ export interface User {
   role: "admin" | "member";
 }
 
-
 const getAuthHeaders = (): Record<string, string> => {
   return { "Content-Type": "application/json" };
 };
@@ -76,9 +74,7 @@ const handleApiError = (error: any) => {
   throw error;
 };
 
-
 export const api = {
-  
   getNotes: async (): Promise<Note[]> => {
     const response = await fetch(`/api/notes`, {
       headers: getAuthHeaders(),
@@ -107,7 +103,13 @@ export const api = {
 
   updateNote: async (
     id: string,
-    data: { title?: string; content?: any; tags?: string[]; folder?: string | null; folderId?: string | null }
+    data: {
+      title?: string;
+      content?: any;
+      tags?: string[];
+      folder?: string | null;
+      folderId?: string | null;
+    }
   ): Promise<Note> => {
     const response = await fetch(`/api/notes/${id}`, {
       method: "PUT",
@@ -126,7 +128,6 @@ export const api = {
     if (!response.ok) handleApiError(response);
   },
 
-  
   getTenant: async (): Promise<Tenant> => {
     const response = await fetch(`/api/tenant`, {
       headers: getAuthHeaders(),
@@ -143,7 +144,12 @@ export const api = {
     return response.json();
   },
 
-  getOrganizationStats: async (): Promise<{ name: string; memberCount: number; adminCount: number; totalCount: number }> => {
+  getOrganizationStats: async (): Promise<{
+    name: string;
+    memberCount: number;
+    adminCount: number;
+    totalCount: number;
+  }> => {
     const response = await fetch(`/api/organization/stats`, {
       headers: getAuthHeaders(),
     });
@@ -162,7 +168,6 @@ export const api = {
     return response.json();
   },
 
-  
   inviteUser: async (data: {
     email: string;
     role: "admin" | "member";
@@ -177,7 +182,6 @@ export const api = {
     return response.json();
   },
 
-  
   searchNotes: async (
     query: string,
     filters?: {
@@ -202,14 +206,16 @@ export const api = {
       searchParams.append("authorId", filters.authorId);
     }
 
-    const response = await fetch(`/api/notes/search?${searchParams.toString()}`, {
-      headers: getAuthHeaders(),
-    });
+    const response = await fetch(
+      `/api/notes/search?${searchParams.toString()}`,
+      {
+        headers: getAuthHeaders(),
+      }
+    );
     if (!response.ok) handleApiError(response);
     return response.json();
   },
 
-  
   toggleShareNote: async (
     id: string,
     enabled: boolean
@@ -223,7 +229,6 @@ export const api = {
     return response.json();
   },
 
-  
   getFolders: async (): Promise<Folder[]> => {
     const response = await fetch(`/api/folders`, {
       headers: getAuthHeaders(),
@@ -232,7 +237,10 @@ export const api = {
     return response.json();
   },
 
-  createFolder: async (data: { name: string; parentId?: string | null }): Promise<Folder> => {
+  createFolder: async (data: {
+    name: string;
+    parentId?: string | null;
+  }): Promise<Folder> => {
     const response = await fetch(`/api/folders`, {
       method: "POST",
       headers: getAuthHeaders(),
@@ -251,12 +259,11 @@ export const api = {
   },
 };
 
-
 export const useNotes = (): UseQueryResult<Note[], Error> => {
   return useQuery<Note[]>({
     queryKey: ["notes"],
     queryFn: api.getNotes,
-    staleTime: 1000 * 60 * 5, 
+    staleTime: 1000 * 60 * 5,
   });
 };
 
@@ -266,9 +273,8 @@ export const useNote = (id: string): UseQueryResult<Note, Error> => {
     queryKey: ["notes", id],
     queryFn: () => api.getNote(id),
     enabled: !!id,
-    staleTime: 1000 * 60 * 5, 
+    staleTime: 1000 * 60 * 5,
     initialData: () => {
-      
       return queryClient
         .getQueryData<Note[]>(["notes"])
         ?.find(n => n.id === id);
@@ -282,7 +288,7 @@ export const useFolders = (): UseQueryResult<Folder[], Error> => {
   return useQuery<Folder[]>({
     queryKey: ["folders"],
     queryFn: api.getFolders,
-    staleTime: 1000 * 60 * 5, 
+    staleTime: 1000 * 60 * 5,
   });
 };
 
@@ -300,11 +306,7 @@ export const useCreateFolder = (): UseMutationResult<
   });
 };
 
-export const useDeleteFolder = (): UseMutationResult<
-  void,
-  Error,
-  string
-> => {
+export const useDeleteFolder = (): UseMutationResult<void, Error, string> => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: api.deleteFolder,
@@ -319,8 +321,8 @@ export const useTenant = (): UseQueryResult<Tenant, Error> => {
   return useQuery<Tenant>({
     queryKey: ["tenant"],
     queryFn: api.getTenant,
-    staleTime: 0, 
-    refetchInterval: 5000, 
+    staleTime: 0,
+    refetchInterval: 5000,
   });
 };
 
@@ -328,7 +330,7 @@ export const useOrganizationStats = (enabled: boolean = true) => {
   return useQuery({
     queryKey: ["organizationStats"],
     queryFn: api.getOrganizationStats,
-    staleTime: 1000 * 60 * 5, 
+    staleTime: 1000 * 60 * 5,
     enabled,
   });
 };
@@ -347,27 +349,27 @@ export const useCreateNote = (): UseMutationResult<
     { previousNotes: Note[] | undefined }
   >({
     mutationFn: api.createNote,
-    onMutate: async (newNote) => {
-      
+    onMutate: async newNote => {
       await queryClient.cancelQueries({ queryKey: ["notes"] });
-      
-      
+
       const previousNotes = queryClient.getQueryData<Note[]>(["notes"]);
-      
-      
+
       if (previousNotes) {
-        queryClient.setQueryData<Note[]>(["notes"], [
-          { 
-            ...newNote, 
-            id: "temp", 
-            created_at: new Date().toISOString(), 
-            updated_at: new Date().toISOString(),
-            isOptimistic: true 
-          } as Note,
-          ...previousNotes,
-        ]);
+        queryClient.setQueryData<Note[]>(
+          ["notes"],
+          [
+            {
+              ...newNote,
+              id: "temp",
+              created_at: new Date().toISOString(),
+              updated_at: new Date().toISOString(),
+              isOptimistic: true,
+            } as Note,
+            ...previousNotes,
+          ]
+        );
       }
-      
+
       return { previousNotes };
     },
     onSuccess: () => {
@@ -375,7 +377,6 @@ export const useCreateNote = (): UseMutationResult<
       queryClient.invalidateQueries({ queryKey: ["tenant"] });
     },
     onError: (err, newNote, context) => {
-      
       if (context?.previousNotes) {
         queryClient.setQueryData(["notes"], context.previousNotes);
       }
@@ -386,14 +387,32 @@ export const useCreateNote = (): UseMutationResult<
 export const useUpdateNote = (): UseMutationResult<
   Note,
   Error,
-  { id: string; data: { title?: string; content?: any; tags?: string[]; folder?: string | null; folderId?: string | null } },
+  {
+    id: string;
+    data: {
+      title?: string;
+      content?: any;
+      tags?: string[];
+      folder?: string | null;
+      folderId?: string | null;
+    };
+  },
   { previousNotes: Note[] | undefined; previousNote: Note | undefined }
 > => {
   const queryClient = useQueryClient();
   return useMutation<
     Note,
     Error,
-    { id: string; data: { title?: string; content?: any; tags?: string[]; folder?: string | null; folderId?: string | null } },
+    {
+      id: string;
+      data: {
+        title?: string;
+        content?: any;
+        tags?: string[];
+        folder?: string | null;
+        folderId?: string | null;
+      };
+    },
     { previousNotes: Note[] | undefined; previousNote: Note | undefined }
   >({
     mutationFn: ({
@@ -401,7 +420,13 @@ export const useUpdateNote = (): UseMutationResult<
       data,
     }: {
       id: string;
-      data: { title?: string; content?: any; tags?: string[]; folder?: string | null; folderId?: string | null };
+      data: {
+        title?: string;
+        content?: any;
+        tags?: string[];
+        folder?: string | null;
+        folderId?: string | null;
+      };
     }) => api.updateNote(id, data),
     onMutate: async ({ id, data }) => {
       await queryClient.cancelQueries({ queryKey: ["notes"] });
@@ -417,13 +442,15 @@ export const useUpdateNote = (): UseMutationResult<
         );
       }
       if (previousNote) {
-        queryClient.setQueryData<Note>(["notes", id], { ...previousNote, ...data });
+        queryClient.setQueryData<Note>(["notes", id], {
+          ...previousNote,
+          ...data,
+        });
       }
 
       return { previousNotes, previousNote };
     },
     onSuccess: (_, { id }) => {
-      
       queryClient.invalidateQueries({ queryKey: ["notes"] });
       queryClient.invalidateQueries({ queryKey: ["notes", id] });
     },
@@ -452,17 +479,17 @@ export const useDeleteNote = (): UseMutationResult<
     { previousNotes: Note[] | undefined }
   >({
     mutationFn: api.deleteNote,
-    onMutate: async (id) => {
+    onMutate: async id => {
       await queryClient.cancelQueries({ queryKey: ["notes"] });
       const previousNotes = queryClient.getQueryData<Note[]>(["notes"]);
-      
+
       if (previousNotes) {
         queryClient.setQueryData<Note[]>(
           ["notes"],
           previousNotes.filter(n => n.id !== id)
         );
       }
-      
+
       return { previousNotes };
     },
     onSuccess: () => {
@@ -487,7 +514,7 @@ export const useUpgradeTenant = (): UseMutationResult<
     mutationFn: api.upgradeTenant,
     onSuccess: () => {
       toast.success("Successfully upgraded to PRO!");
-      
+
       queryClient.invalidateQueries({ queryKey: ["tenant"] });
     },
     onError: () => {
@@ -496,11 +523,13 @@ export const useUpgradeTenant = (): UseMutationResult<
   });
 };
 
-export const useOrganizationUsers = (enabled: boolean = true): UseQueryResult<any[], Error> => {
+export const useOrganizationUsers = (
+  enabled: boolean = true
+): UseQueryResult<any[], Error> => {
   return useQuery<any[]>({
     queryKey: ["organizationUsers"],
     queryFn: () => api.getOrganizationUsers(),
-    staleTime: 1000 * 60 * 5, 
+    staleTime: 1000 * 60 * 5,
     enabled,
   });
 };
@@ -541,11 +570,10 @@ export const useSearchNotes = (
     queryKey: ["notes", "search", query, filters],
     queryFn: () => api.searchNotes(query, filters),
     enabled: query.length > 0 || (filters && Object.keys(filters).length > 0),
-    staleTime: 1000 * 60, 
-    placeholderData: (previousData) => previousData as Note[],
+    staleTime: 1000 * 60,
+    placeholderData: previousData => previousData as Note[],
   });
 };
-
 
 export const useAIAction = (): UseMutationResult<
   string,
@@ -587,7 +615,6 @@ export const useAIAction = (): UseMutationResult<
     },
   });
 };
-
 
 export const useToggleShare = (): UseMutationResult<
   SharedNote | null,

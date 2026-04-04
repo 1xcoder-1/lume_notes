@@ -13,7 +13,7 @@ import NextTopLoader from "nextjs-toploader";
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      staleTime: 1000 * 60 * 5, 
+      staleTime: 1000 * 60 * 5,
       retry: 1,
     },
   },
@@ -27,13 +27,10 @@ function AuthRedirectHandler() {
   useEffect(() => {
     if (status === "loading") return;
 
-    
-    
     if (status === "authenticated" && session?.user) {
       const hasTenant = (session.user as any)?.tenantId;
       const isOrgSetupPage = pathname?.startsWith("/organization/setup");
 
-      
       if (!hasTenant && !isOrgSetupPage && pathname !== "/") {
         router.push("/organization/setup");
         return;

@@ -14,7 +14,6 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
 
-    
     const validationResult = inviteEmailsSchema.safeParse(body);
     if (!validationResult.success) {
       const errorMessage =
@@ -24,7 +23,6 @@ export async function POST(request: NextRequest) {
 
     const { emails } = validationResult.data;
 
-    
     const user = await prisma.user.findUnique({
       where: { id: session.user.id },
       include: { tenant: true },
@@ -42,15 +40,12 @@ export async function POST(request: NextRequest) {
     for (const email of emails) {
       const trimmedEmail = email.trim().toLowerCase();
 
-      
       const existingUser = await prisma.user.findUnique({
         where: { email: trimmedEmail },
       });
 
       if (existingUser) {
-        
         if (!existingUser.tenant_id) {
-          
           await prisma.user.update({
             where: { id: existingUser.id },
             data: { tenant_id: user.tenant.id },
@@ -67,7 +62,6 @@ export async function POST(request: NextRequest) {
         continue;
       }
 
-      
       const inviteUrl = `${process.env.NEXTAUTH_URL}/auth/register?invite=${user.tenant.slug}`;
       await sendOrganizationInviteEmail(
         trimmedEmail,

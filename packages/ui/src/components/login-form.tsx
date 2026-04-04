@@ -46,7 +46,7 @@ export function LoginForm({
           className="mx-auto h-12 w-12"
         />
         <h1 className="text-2xl font-bold">Login to your account</h1>
-        <p className="text-muted-foreground text-balance text-sm">
+        <p className="text-muted-foreground text-sm text-balance">
           Enter your email below to login to your account
         </p>
       </div>

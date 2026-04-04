@@ -9,9 +9,6 @@ import {
   Image,
 } from "@react-pdf/renderer";
 
-
-
-
 const styles = StyleSheet.create({
   page: {
     padding: 40,
@@ -105,19 +102,18 @@ interface PdfDocumentProps {
   fontFamily?: string;
 }
 
-export const PdfDocument = ({ 
-  title, 
-  content, 
-  theme = "modern", 
+export const PdfDocument = ({
+  title,
+  content,
+  theme = "modern",
   accentColor = "#1a1a1a",
-  fontFamily = "Helvetica" 
+  fontFamily = "Helvetica",
 }: PdfDocumentProps) => {
-  
   const getStyles = () => {
     let baseFont = fontFamily;
     let titleColor = accentColor;
     let bcgColor = "#ffffff";
-    
+
     if (theme === "classic") {
       baseFont = "Times-Roman";
     } else if (theme === "minimal") {
@@ -229,8 +225,8 @@ export const PdfDocument = ({
           level === 1
             ? styles.heading1
             : level === 2
-            ? styles.heading2
-            : styles.heading3;
+              ? styles.heading2
+              : styles.heading3;
         return (
           <Text key={index} style={headingStyle}>
             {node.content?.map((child: any, i: number) => renderText(child, i))}
@@ -276,7 +272,9 @@ export const PdfDocument = ({
         return (
           <View key={index} style={styles.codeBlock}>
             <Text>
-              {node.content?.map((child: any, i: number) => child.text).join("")}
+              {node.content
+                ?.map((child: any, i: number) => child.text)
+                .join("")}
             </Text>
           </View>
         );
@@ -287,7 +285,7 @@ export const PdfDocument = ({
 
   const renderText = (node: any, index: number) => {
     if (node.type !== "text") return null;
-    
+
     let textStyle: any = {};
     if (node.marks) {
       node.marks.forEach((mark: any) => {
@@ -297,8 +295,12 @@ export const PdfDocument = ({
         if (mark.type === "strike") textStyle.textDecoration = "line-through";
       });
     }
-    
-    return <Text key={index} style={textStyle}>{node.text}</Text>;
+
+    return (
+      <Text key={index} style={textStyle}>
+        {node.text}
+      </Text>
+    );
   };
 
   return (
@@ -307,7 +309,8 @@ export const PdfDocument = ({
         <View style={styles.header}>
           <Text style={styles.title}>{title}</Text>
           <Text style={styles.date}>
-            Generated on {new Date().toLocaleDateString(undefined, { dateStyle: 'long' })}
+            Generated on{" "}
+            {new Date().toLocaleDateString(undefined, { dateStyle: "long" })}
           </Text>
         </View>
         <View style={styles.content}>

@@ -5,7 +5,6 @@ import {
 
 const apiInstance = new TransactionalEmailsApi();
 
-
 apiInstance.setApiKey(
   TransactionalEmailsApiApiKeys.apiKey,
   process.env.BREVO_API_KEY!
@@ -373,4 +372,3 @@ export async function sendOrganizationInviteEmail(
     textContent: `${inviterName} invited you to join ${organizationName} on lume notes. Accept the invitation: ${inviteUrl}`,
   });
 }
-

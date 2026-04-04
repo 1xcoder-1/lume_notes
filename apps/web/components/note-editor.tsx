@@ -1,4 +1,12 @@
-import { useEffect, useState, useRef, useMemo, Fragment, useCallback, memo } from "react";
+import {
+  useEffect,
+  useState,
+  useRef,
+  useMemo,
+  Fragment,
+  useCallback,
+  memo,
+} from "react";
 import { EditorContent, useEditor, BubbleMenu } from "@tiptap/react";
 import { Sparkles } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
@@ -60,7 +68,7 @@ import {
   Upload,
   Download,
   Share2,
-  Loader2
+  Loader2,
 } from "lucide-react";
 import { AIAssistant } from "./ai-assistant";
 import { useUpdateNote } from "@/lib/api";
@@ -69,27 +77,30 @@ import { toast } from "sonner";
 import "./note-styles.css";
 import { cn } from "@workspace/ui/lib/utils";
 
-
-const ToolbarItem = memo(({ tool, isVisible }: { tool: any, isVisible: boolean }) => {
-  return isVisible ? <>{tool.jsx}</> : null;
-});
+const ToolbarItem = memo(
+  ({ tool, isVisible }: { tool: any; isVisible: boolean }) => {
+    return isVisible ? <>{tool.jsx}</> : null;
+  }
+);
 
 const ToolbarDropdownItem = memo(({ tool }: { tool: any }) => {
   return <>{tool.dropdownJsx}</>;
 });
 
-const SelectionObserver = memo(({ editor, onUpdate }: { editor: any, onUpdate: () => void }) => {
-  useEffect(() => {
-    const handleUpdate = () => onUpdate();
-    editor.on("update", handleUpdate);
-    editor.on("selectionUpdate", handleUpdate);
-    return () => {
-      editor.off("update", handleUpdate);
-      editor.off("selectionUpdate", handleUpdate);
-    };
-  }, [editor, onUpdate]);
-  return null;
-});
+const SelectionObserver = memo(
+  ({ editor, onUpdate }: { editor: any; onUpdate: () => void }) => {
+    useEffect(() => {
+      const handleUpdate = () => onUpdate();
+      editor.on("update", handleUpdate);
+      editor.on("selectionUpdate", handleUpdate);
+      return () => {
+        editor.off("update", handleUpdate);
+        editor.off("selectionUpdate", handleUpdate);
+      };
+    }, [editor, onUpdate]);
+    return null;
+  }
+);
 
 export type ToolbarProps = {
   editor: any;
@@ -136,7 +147,6 @@ export function Toolbar({
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [isHighlightPopoverOpen, setIsHighlightPopoverOpen] = useState(false);
 
-
   const toolbarRef = useRef<HTMLDivElement>(null);
   const [visibleItemsCount, setVisibleItemsCount] = useState(20);
 
@@ -171,7 +181,6 @@ export function Toolbar({
     }
   };
 
-
   useEffect(() => {
     const toolbar = toolbarRef.current;
     if (!toolbar) return;
@@ -179,7 +188,6 @@ export function Toolbar({
     const observer = new ResizeObserver(entries => {
       const width = entries[0]?.contentRect.width;
       if (width) {
-
         const avgItemWidth = 42;
         const count = Math.floor(width / avgItemWidth);
         setVisibleItemsCount(Math.max(0, count));
@@ -193,9 +201,7 @@ export function Toolbar({
     };
   }, []);
 
-
   const itemCls = (active: boolean) =>
-
     "h-8 px-2 text-xs border rounded-md " +
     (active
       ? "bg-primary/10 border-primary text-primary"
@@ -223,7 +229,10 @@ export function Toolbar({
           </Tooltip>
         ),
         dropdownJsx: (
-          <DropdownMenuItem onClick={() => editor.chain().focus().undo().run()} disabled={disabled || readOnly || saving}>
+          <DropdownMenuItem
+            onClick={() => editor.chain().focus().undo().run()}
+            disabled={disabled || readOnly || saving}
+          >
             <Undo className="mr-2 size-4" /> Undo
           </DropdownMenuItem>
         ),
@@ -238,7 +247,9 @@ export function Toolbar({
                 variant="ghost"
                 className={itemCls(false)}
                 onClick={() => editor.chain().focus().redo().run()}
-                disabled={!editor.can().redo() || disabled || readOnly || saving}
+                disabled={
+                  !editor.can().redo() || disabled || readOnly || saving
+                }
                 aria-label="Redo"
               >
                 <Redo className="size-4" />
@@ -248,7 +259,10 @@ export function Toolbar({
           </Tooltip>
         ),
         dropdownJsx: (
-          <DropdownMenuItem onClick={() => editor.chain().focus().redo().run()} disabled={disabled || readOnly || saving}>
+          <DropdownMenuItem
+            onClick={() => editor.chain().focus().redo().run()}
+            disabled={disabled || readOnly || saving}
+          >
             <Redo className="mr-2 size-4" /> Redo
           </DropdownMenuItem>
         ),
@@ -368,8 +382,8 @@ export function Toolbar({
                     variant="ghost"
                     className={itemCls(
                       editor.isActive("bulletList") ||
-                      editor.isActive("orderedList") ||
-                      editor.isActive("taskList")
+                        editor.isActive("orderedList") ||
+                        editor.isActive("taskList")
                     )}
                     aria-label="Lists"
                     style={{ width: "36px", gap: "1px" }}
@@ -1115,7 +1129,9 @@ export function Toolbar({
             </TooltipTrigger>
             <TooltipContent>
               Format Document
-              <span className="ml-2 text-muted-foreground text-[9px]">Shift+Alt+F</span>
+              <span className="text-muted-foreground ml-2 text-[9px]">
+                Shift+Alt+F
+              </span>
             </TooltipContent>
           </Tooltip>
         ),
@@ -1172,7 +1188,18 @@ export function Toolbar({
           </DropdownMenuItem>
         ),
       },
-    ], [editor, disabled, readOnly, saving, isPopoverOpen, isHighlightPopoverOpen, updateCounter, isDirty]);
+    ],
+    [
+      editor,
+      disabled,
+      readOnly,
+      saving,
+      isPopoverOpen,
+      isHighlightPopoverOpen,
+      updateCounter,
+      isDirty,
+    ]
+  );
 
   const visibleTools = allTools.slice(0, visibleItemsCount);
   const hiddenTools = allTools.slice(visibleItemsCount);
@@ -1190,76 +1217,81 @@ export function Toolbar({
     const remainingSlots = MAX_IMAGES - currentImageCount;
 
     if (remainingSlots <= 0) {
-      toast.error("Image Limit Reached", { description: "Max 7 images per note." });
+      toast.error("Image Limit Reached", {
+        description: "Max 7 images per note.",
+      });
       e.target.value = "";
       return;
     }
 
     const toastId = toast.loading("Optimizing images...");
 
-    Array.from(files).slice(0, remainingSlots).forEach(async (file) => {
-      const reader = new FileReader();
+    Array.from(files)
+      .slice(0, remainingSlots)
+      .forEach(async file => {
+        const reader = new FileReader();
 
-      reader.onload = (event) => {
-        const rawUrl = event.target?.result as string;
-        if (!rawUrl) return;
+        reader.onload = event => {
+          const rawUrl = event.target?.result as string;
+          if (!rawUrl) return;
 
-        // --- OPTIMIZATION STEP: Resize large images before insertion ---
-        const img = new Image();
-        img.src = rawUrl;
-        img.onload = () => {
-          const canvas = document.createElement("canvas");
-          const ctx = canvas.getContext("2d");
-          if (!ctx) return;
+          // --- OPTIMIZATION STEP: Resize large images before insertion ---
+          const img = new Image();
+          img.src = rawUrl;
+          img.onload = () => {
+            const canvas = document.createElement("canvas");
+            const ctx = canvas.getContext("2d");
+            if (!ctx) return;
 
-          const MAX_SIZE = 1200;
-          let width = img.width;
-          let height = img.height;
+            const MAX_SIZE = 1200;
+            let width = img.width;
+            let height = img.height;
 
-          if (width > height) {
-            if (width > MAX_SIZE) {
-              height *= MAX_SIZE / width;
-              width = MAX_SIZE;
-            }
-          } else {
-            if (height > MAX_SIZE) {
-              width *= MAX_SIZE / height;
-              height = MAX_SIZE;
-            }
-          }
-
-          canvas.width = width;
-          canvas.height = height;
-          ctx.drawImage(img, 0, 0, width, height);
-
-          // Convert to a slightly compressed image for better performance
-          const optimizedUrl = canvas.toDataURL("image/webp", 0.75);
-
-          // Insert Image AND a trailing paragraph so the cursor isn't stuck
-          editor.chain()
-            .focus()
-            .insertContent([
-              {
-                type: "image",
-                attrs: { src: optimizedUrl }
-              },
-              {
-                type: "paragraph"
+            if (width > height) {
+              if (width > MAX_SIZE) {
+                height *= MAX_SIZE / width;
+                width = MAX_SIZE;
               }
-            ])
-            .run();
+            } else {
+              if (height > MAX_SIZE) {
+                width *= MAX_SIZE / height;
+                height = MAX_SIZE;
+              }
+            }
 
-          toast.success(`Image "${file.name}" ready!`, { id: toastId });
+            canvas.width = width;
+            canvas.height = height;
+            ctx.drawImage(img, 0, 0, width, height);
+
+            // Convert to a slightly compressed image for better performance
+            const optimizedUrl = canvas.toDataURL("image/webp", 0.75);
+
+            // Insert Image AND a trailing paragraph so the cursor isn't stuck
+            editor
+              .chain()
+              .focus()
+              .insertContent([
+                {
+                  type: "image",
+                  attrs: { src: optimizedUrl },
+                },
+                {
+                  type: "paragraph",
+                },
+              ])
+              .run();
+
+            toast.success(`Image "${file.name}" ready!`, { id: toastId });
+          };
         };
-      };
-      reader.readAsDataURL(file);
-    });
+        reader.readAsDataURL(file);
+      });
 
     e.target.value = "";
   };
 
   return (
-    <div className="toolbar-container flex h-14 w-full items-center justify-between border-b bg-background/95 px-4 backdrop-blur supports-backdrop-filter:bg-background/60">
+    <div className="toolbar-container bg-background/95 supports-backdrop-filter:bg-background/60 flex h-14 w-full items-center justify-between border-b px-4 backdrop-blur">
       <input
         id="image-upload"
         type="file"
@@ -1276,7 +1308,12 @@ export function Toolbar({
             onClick={onToggleLeftSidebar}
             className="h-8 w-8 p-0"
           >
-            <PanelLeft className={cn("size-5", isLeftSidebarOpen ? "text-primary" : "text-muted-foreground")} />
+            <PanelLeft
+              className={cn(
+                "size-5",
+                isLeftSidebarOpen ? "text-primary" : "text-muted-foreground"
+              )}
+            />
           </Button>
         )}
         <AIAssistant
@@ -1294,7 +1331,11 @@ export function Toolbar({
         <div className="toolbar-inner flex items-center gap-1 overflow-hidden">
           <SelectionObserver editor={editor} onUpdate={triggerUpdate} />
           {allTools.map((tool, idx) => (
-            <ToolbarItem key={tool.id} tool={tool} isVisible={idx < visibleItemsCount} />
+            <ToolbarItem
+              key={tool.id}
+              tool={tool}
+              isVisible={idx < visibleItemsCount}
+            />
           ))}
           {hiddenTools.length > 0 && (
             <DropdownMenu>
@@ -1305,7 +1346,7 @@ export function Toolbar({
               </DropdownMenuTrigger>
               <DropdownMenuContent
                 align="center"
-                className="w-48 max-h-[400px] overflow-y-auto shadow-md"
+                className="max-h-[400px] w-48 overflow-y-auto shadow-md"
               >
                 {hiddenTools.map(tool => (
                   <ToolbarDropdownItem key={tool.id} tool={tool} />
@@ -1321,7 +1362,7 @@ export function Toolbar({
             size="sm"
             variant="outline"
             onClick={onInviteUser}
-            className="shrink-0 h-8 w-8 p-0 bg-transparent border-white/60 text-white hover:bg-white/10 hover:border-white transition-colors"
+            className="h-8 w-8 shrink-0 border-white/60 bg-transparent p-0 text-white transition-colors hover:border-white hover:bg-white/10"
             title="Invite People"
             disabled={readOnly}
           >
@@ -1335,14 +1376,16 @@ export function Toolbar({
                 size="sm"
                 variant="outline"
                 onClick={() => onShareNote(editor.getHTML())}
-                className="shrink-0 h-8 w-8 p-0"
+                className="h-8 w-8 shrink-0 p-0"
                 disabled={readOnly || !canShare}
               >
                 <Share2 className="size-4" />
               </Button>
             </TooltipTrigger>
             <TooltipContent>
-              {!canShare ? "Sharing disabled by organization admin" : "Share & Publish"}
+              {!canShare
+                ? "Sharing disabled by organization admin"
+                : "Share & Publish"}
             </TooltipContent>
           </Tooltip>
         )}
@@ -1351,7 +1394,7 @@ export function Toolbar({
             size="sm"
             variant="outline"
             onClick={() => onExportNote(editor.getHTML())}
-            className="shrink-0 h-8 w-8 p-0"
+            className="h-8 w-8 shrink-0 p-0"
             title="Export Note"
           >
             <Download className="size-4" />
@@ -1362,23 +1405,30 @@ export function Toolbar({
           onClick={onSave}
           disabled={disabled || saving || (!isDirty && !saving)}
           className={cn(
-            "shrink-0 transition-all font-semibold rounded-lg relative overflow-hidden",
+            "relative shrink-0 overflow-hidden rounded-lg font-semibold transition-all",
             isDirty
-              ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-md px-6"
-              : "bg-transparent border border-gray-600/30 text-muted-foreground hover:bg-accent px-4",
+              ? "bg-primary text-primary-foreground hover:bg-primary/90 px-6 shadow-md"
+              : "text-muted-foreground hover:bg-accent border border-gray-600/30 bg-transparent px-4",
             saving && "px-6"
           )}
         >
           <div className="flex items-center justify-center gap-2">
             {saving ? (
               <>
-                <Loader2 className="size-4 animate-spin text-primary-foreground" />
+                <Loader2 className="text-primary-foreground size-4 animate-spin" />
                 <span>Saving...</span>
               </>
             ) : (
               <>
-                <Save className={cn("size-4 md:mr-1.5", isDirty ? "animate-bounce" : "")} />
-                <span className="hidden md:inline">{isDirty ? "Save" : "Saved"}</span>
+                <Save
+                  className={cn(
+                    "size-4 md:mr-1.5",
+                    isDirty ? "animate-bounce" : ""
+                  )}
+                />
+                <span className="hidden md:inline">
+                  {isDirty ? "Save" : "Saved"}
+                </span>
               </>
             )}
           </div>
@@ -1388,7 +1438,13 @@ export function Toolbar({
   );
 }
 
-export function NoteEditor({ editor, readOnly = false }: { editor: any, readOnly?: boolean }) {
+export function NoteEditor({
+  editor,
+  readOnly = false,
+}: {
+  editor: any;
+  readOnly?: boolean;
+}) {
   if (!editor) return null;
 
   return (
@@ -1399,7 +1455,12 @@ export function NoteEditor({ editor, readOnly = false }: { editor: any, readOnly
           shouldShow={({ editor, from, to }) => {
             // Robust check to HIDE the menu on images or if selection is empty/readonly
             const nodeName = (editor.state.selection as any)?.node?.type.name;
-            if (readOnly || from === to || editor.isActive("image") || nodeName === "image") {
+            if (
+              readOnly ||
+              from === to ||
+              editor.isActive("image") ||
+              nodeName === "image"
+            ) {
               return false;
             }
             return true;
@@ -1408,14 +1469,14 @@ export function NoteEditor({ editor, readOnly = false }: { editor: any, readOnly
             duration: 100,
             zIndex: 99,
             placement: "top",
-            appendTo: "parent"
+            appendTo: "parent",
           }}
-          className="flex items-center gap-1 rounded-lg border bg-background p-1 shadow-md animate-in fade-in zoom-in duration-200"
+          className="bg-background animate-in fade-in zoom-in flex items-center gap-1 rounded-lg border p-1 shadow-md duration-200"
         >
           {!readOnly && (
             <div className="flex items-center gap-1 px-1">
               <AIAssistant editor={editor} disabled={readOnly} />
-              <div className="h-4 w-px bg-border mx-1" />
+              <div className="bg-border mx-1 h-4 w-px" />
               <Button
                 size="sm"
                 variant="ghost"

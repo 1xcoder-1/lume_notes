@@ -20,7 +20,6 @@ export default function RegisterPage() {
   const router = useRouter();
   const { data: session, status } = useSession();
 
-  
   useEffect(() => {
     if (status === "loading") return;
 
@@ -39,7 +38,6 @@ export default function RegisterPage() {
     setLoading(true);
     setError("");
 
-    
     const validationResult = registerSchema.safeParse({
       email: registerEmail,
       password: registerPassword,
@@ -72,7 +70,6 @@ export default function RegisterPage() {
             "Registration successful! Please check your email to verify your account."
         );
         setError("");
-        
       } else {
         setError(data.error || "Registration failed");
         setSuccess("");

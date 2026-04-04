@@ -13,21 +13,26 @@ Lucide Note supports a robust, hierarchical folder organization system. This all
 ## How to use
 
 ### Creating Folders
+
 - Use the **Plus (+)** icon in the Explorer header to create a root-level folder.
 - Use the **Plus (+)** icon inside a folder's dropdown menu to create a **sub-folder** inside it.
 
 ### Organizing Notes
+
 - Drag any note from the sidebar and drop it onto a folder to move it.
 - Use the **Folder Selection** menu within the Note Editor to change a note's location.
 
 ### Managing Folders
+
 - **Expand/Collapse**: Click the folder name or arrow to toggle its children.
 - **Delete**: Use the trash icon in the folder dropdown menu. Note: Deleting a folder will also permanently delete all notes inside it.
 
 ## Technical Details
 
 ### Database Schema
+
 We use a self-referencing relationship in the `Folder` model:
+
 ```prisma
 model Folder {
   id         String   @id @default(cuid())
@@ -40,10 +45,11 @@ model Folder {
 ```
 
 ### UI Implementation
+
 - **Recursive Rendering**: The `SidebarContent` component uses a recursive `renderFolderItem` function to build the tree.
 - **Optimized Tree Building**: A flat list of folders is transformed into a tree structure client-side for maximum performance.
 - **Live Sync**: Changes to folder hierarchies are synced in real-time between users.
 
 ---
 
-*Updated: April 2, 2026*
+_Updated: April 2, 2026_

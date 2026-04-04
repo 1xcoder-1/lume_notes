@@ -13,7 +13,6 @@ export async function POST(request: NextRequest) {
 
     const body = await request.json();
 
-    
     const validationResult = createOrganizationSchema.safeParse(body);
     if (!validationResult.success) {
       const errorMessage =
@@ -23,7 +22,6 @@ export async function POST(request: NextRequest) {
 
     const { name } = validationResult.data;
 
-    
     const existingUser = await prisma.user.findUnique({
       where: { id: session.user.id },
       include: { tenant: true },
@@ -36,14 +34,12 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    
     const slug = name
       .toLowerCase()
       .replace(/[^a-z0-9]/g, "-")
       .replace(/-+/g, "-")
       .replace(/^-|-$/g, "");
 
-    
     const existingTenant = await prisma.tenant.findUnique({
       where: { slug },
     });
@@ -55,7 +51,6 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    
     const tenant = await prisma.tenant.create({
       data: {
         slug,
@@ -64,7 +59,6 @@ export async function POST(request: NextRequest) {
       },
     });
 
-    
     const updatedUser = await prisma.user.update({
       where: { id: session.user.id },
       data: {

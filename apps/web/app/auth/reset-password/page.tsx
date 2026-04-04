@@ -34,7 +34,6 @@ function ResetPasswordFormComponent() {
       return;
     }
 
-    
     const validationResult = resetPasswordSchema.safeParse({
       password,
       confirmPassword,
