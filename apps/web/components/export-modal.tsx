@@ -1,0 +1,278 @@
+"use client";
+
+import React, { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@workspace/ui/components/dialog";
+import { Button } from "@workspace/ui/components/button";
+import { Label } from "@workspace/ui/components/label";
+import { Checkbox } from "@workspace/ui/components/checkbox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/select";
+import { FileText, FileCode, FileType, FileLineChart, Loader2, Palette, Type } from "lucide-react";
+import { toast } from "sonner";
+import { exportNote, type ExportFormat } from "@/lib/export-utils";
+
+interface ExportModalProps {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  note: {
+    id: string;
+    title: string;
+    content: any;
+  } | null;
+}
+
+const formatOptions: {
+  value: ExportFormat;
+  label: string;
+  icon: React.ReactNode;
+  description: string;
+}[] = [
+  {
+    value: "pdf",
+    label: "PDF",
+    icon: <FileText className="h-4 w-4" />,
+    description: "Best for printing and sharing",
+  },
+  {
+    value: "markdown",
+    label: "Markdown",
+    icon: <FileCode className="h-4 w-4" />,
+    description: "Plain text with formatting syntax",
+  },
+  {
+    value: "html",
+    label: "HTML",
+    icon: <FileType className="h-4 w-4" />,
+    description: "Web page format with styling",
+  },
+  {
+    value: "word",
+    label: "Word",
+    icon: <FileLineChart className="h-4 w-4" />,
+    description: "Microsoft Word document (.doc)",
+  },
+];
+
+export function ExportModal({ open, onOpenChange, note }: ExportModalProps) {
+  const [format, setFormat] = useState<ExportFormat>("pdf");
+  const [includeStyles, setIncludeStyles] = useState(true);
+  const [isExporting, setIsExporting] = useState(false);
+  
+  
+  const [pdfTheme, setPdfTheme] = useState<"modern" | "classic" | "minimal">("modern");
+  const [pdfAccentColor, setPdfAccentColor] = useState("#1a1a1a");
+  const [pdfFontFamily, setPdfFontFamily] = useState("Helvetica");
+
+  const handleExport = async () => {
+    if (!note) return;
+
+    setIsExporting(true);
+    try {
+      await exportNote(note.content, note.title, {
+        format,
+        includeStyles,
+        pdfOptions: format === "pdf" ? {
+          theme: pdfTheme,
+          accentColor: pdfAccentColor,
+          fontFamily: pdfFontFamily,
+        } : undefined,
+      });
+      toast.success(`Note exported as ${format.toUpperCase()}`);
+      onOpenChange(false);
+    } catch (error: any) {
+      toast.error(error.message || "Failed to export note");
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const selectedFormat = formatOptions.find(f => f.value === format);
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Export Note</DialogTitle>
+          <DialogDescription>
+            Export &quot;{note?.title || "Untitled"}&quot; to your preferred
+            format.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4 py-2">
+          {}
+          <div className="space-y-2">
+            <Label htmlFor="format">Export Format</Label>
+            <Select
+              value={format}
+              onValueChange={value => setFormat(value as ExportFormat)}
+            >
+              <SelectTrigger id="format" className="w-full">
+                <SelectValue placeholder="Select format" />
+              </SelectTrigger>
+              <SelectContent>
+                {formatOptions.map(option => (
+                  <SelectItem key={option.value} value={option.value}>
+                    <div className="flex items-center gap-2">
+                      {option.icon}
+                      <span>{option.label}</span>
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {selectedFormat && (
+              <p className="text-muted-foreground text-xs">
+                {selectedFormat.description}
+              </p>
+            )}
+          </div>
+
+          {}
+          {(format === "html" || format === "pdf") && (
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="includeStyles"
+                checked={includeStyles}
+                onCheckedChange={checked =>
+                  setIncludeStyles(checked as boolean)
+                }
+              />
+              <Label
+                htmlFor="includeStyles"
+                className="cursor-pointer text-sm font-normal"
+              >
+                Include styling (fonts, colors, layout)
+              </Label>
+            </div>
+          )}
+
+          {}
+          {format === "pdf" && includeStyles && (
+            <div className="space-y-4 border-t pt-4">
+              <div className="flex items-center gap-2">
+                <Palette className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm font-medium">PDF Customization</span>
+              </div>
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="pdfTheme" className="text-xs">Theme</Label>
+                  <Select
+                    value={pdfTheme}
+                    onValueChange={value => setPdfTheme(value as any)}
+                  >
+                    <SelectTrigger id="pdfTheme" className="h-8 text-xs">
+                      <SelectValue placeholder="Theme" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="modern">Modern</SelectItem>
+                      <SelectItem value="classic">Classic</SelectItem>
+                      <SelectItem value="minimal">Minimal</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="pdfFont" className="text-xs">Font</Label>
+                  <Select
+                    value={pdfFontFamily}
+                    onValueChange={value => setPdfFontFamily(value)}
+                  >
+                    <SelectTrigger id="pdfFont" className="h-8 text-xs">
+                      <SelectValue placeholder="Font" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Helvetica">Sans Serif</SelectItem>
+                      <SelectItem value="Times-Roman">Serif</SelectItem>
+                      <SelectItem value="Courier">Monospace</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="accentColor" className="text-xs">Accent Color</Label>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="color"
+                    id="accentColor"
+                    value={pdfAccentColor}
+                    onChange={(e) => setPdfAccentColor(e.target.value)}
+                    className="h-8 w-12 rounded cursor-pointer bg-transparent"
+                  />
+                  <span className="text-xs text-muted-foreground">{pdfAccentColor}</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {}
+          <div className="bg-muted rounded-lg p-3">
+            <p className="text-muted-foreground text-xs">
+              {format === "pdf" && (
+                <>
+                  PDF export will generate a high-fidelity document and
+                  download it directly to your device.
+                </>
+              )}
+              {format === "markdown" && (
+                <>
+                  Markdown files can be opened in any text editor and are
+                  commonly used with documentation tools like GitHub, Notion,
+                  and Obsidian.
+                </>
+              )}
+              {format === "html" && (
+                <>
+                  HTML files can be opened in any web browser.{" "}
+                  {includeStyles
+                    ? "Styling is included."
+                    : "No styling will be applied."}
+                </>
+              )}
+              {format === "word" && (
+                <>
+                  Word documents (.doc) provide a basic formatted document 
+                  that can be opened in Microsoft Word or Google Docs.
+                </>
+              )}
+            </p>
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={isExporting}
+          >
+            Cancel
+          </Button>
+          <Button onClick={handleExport} disabled={isExporting}>
+            {isExporting ? (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Exporting...
+              </>
+            ) : (
+              <>Export</>
+            )}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}

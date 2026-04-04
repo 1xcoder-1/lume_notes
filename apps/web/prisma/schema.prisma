@@ -1,0 +1,141 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["postgresqlExtensions"]
+}
+
+datasource db {
+  provider   = "postgresql"
+  // extensions = [pgvector] -- Disabled due to environment constraints
+}
+
+model Tenant {
+  id    String @id @default(cuid())
+  slug  String @unique
+  name  String
+  plan  Plan   @default(free)
+  notes Note[]
+  users User[]
+  folders    Folder[]
+  members_can_edit   Boolean @default(true)
+  members_can_create Boolean @default(true)
+  members_can_share  Boolean @default(true)
+
+  @@map("tenants")
+}
+
+model Folder {
+  id         String   @id @default(cuid())
+  name       String
+  tenant_id  String
+  tenant     Tenant   @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  parentId   String?
+  parent     Folder?  @relation("SubFolders", fields: [parentId], references: [id], onDelete: Cascade)
+  children   Folder[] @relation("SubFolders")
+  notes      Note[]
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@unique([name, tenant_id, parentId])
+  @@map("folders")
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  password_hash String?
+  role          Role
+  tenant_id     String?
+  emailVerified DateTime?
+  image         String?
+  first_name    String?
+  last_name     String?
+  accounts      Account[]
+  notes         Note[]
+  sessions      Session[]
+  tenant        Tenant?   @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+
+  @@map("users")
+}
+
+model Note {
+  id          String      @id @default(cuid())
+  tenant_id   String
+  author_id   String
+  title       String
+  created_at  DateTime    @default(now())
+  updated_at  DateTime    @updatedAt
+  content     Json
+  tags        String[]    @default([])
+  folder      String?
+  folderId    String?
+  folderObj   Folder?     @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  // embedding   Unsupported("vector(768)")?
+  author      User        @relation(fields: [author_id], references: [id], onDelete: Cascade)
+  tenant      Tenant      @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  shared_note SharedNote?
+
+  @@map("notes")
+}
+
+model SharedNote {
+  id          String    @id @default(cuid())
+  note_id     String    @unique
+  token       String    @unique @default(cuid())
+  is_public   Boolean   @default(true)
+  include_css Boolean   @default(true)
+  expires_at  DateTime?
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+  view_count  Int       @default(0)
+  note        Note      @relation(fields: [note_id], references: [id], onDelete: Cascade)
+
+  @@map("shared_notes")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+  user              User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verificationtokens")
+}
+
+enum Plan {
+  free
+  pro
+}
+
+enum Role {
+  admin
+  member
+}
