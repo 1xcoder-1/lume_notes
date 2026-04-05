@@ -164,6 +164,16 @@ export function jsonToMarkdown(content: any, title?: string): string {
           return "```" + language + "\n" + childContent + "```\n\n";
         case "horizontalRule":
           return "\n---\n\n";
+        case "image":
+          const alt = node.attrs?.title || "image";
+          const src = node.attrs?.src || "";
+          return `![${alt}](${src})\n\n`;
+        case "fileLink":
+          const noteTitle = node.attrs?.label || "Note Link";
+          return `**[Note: ${noteTitle}]** `;
+        case "mention":
+          const userName = node.attrs?.label || "User";
+          return `**@${userName}** `;
         default:
           return childContent;
       }
@@ -281,6 +291,20 @@ export function jsonToHtml(
           return `<pre><code class="language-${language}">${childContent}</code></pre>`;
         case "horizontalRule":
           return "<hr />";
+        case "image":
+          const imgSrc = node.attrs?.src || "";
+          const imgTitle = node.attrs?.title || "";
+          const imgAlign = node.attrs?.textAlign || "center";
+          return `<div style="text-align: ${imgAlign}; margin: 1.5rem 0;">
+            <img src="${imgSrc}" alt="${imgTitle}" style="max-width: 100%; height: auto; border-radius: 8px;" />
+            ${imgTitle ? `<p style="font-size: 0.875rem; color: #666; margin-top: 0.5rem; font-style: italic;">${escapeHtml(imgTitle)}</p>` : ""}
+          </div>`;
+        case "fileLink":
+          const linkLabel = node.attrs?.label || "Note Link";
+          return `<span style="color: #4f46e5; text-decoration: underline; font-weight: bold;">[Note: ${linkLabel}]</span> `;
+        case "mention":
+          const mentionLabel = node.attrs?.label || "User";
+          return `<span style="color: #16a34a; font-weight: bold;">@${mentionLabel}</span> `;
         default:
           return childContent;
       }

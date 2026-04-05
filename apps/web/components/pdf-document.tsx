@@ -204,6 +204,26 @@ export const PdfDocument = ({
         fontSize: 11,
         lineHeight: 1.5,
       },
+      imageWrapper: {
+        marginVertical: 10,
+        alignItems: "center",
+      },
+      image: {
+        maxWidth: "100%",
+        maxHeight: 400,
+        borderRadius: 4,
+      },
+      imageCaption: {
+        fontSize: 9,
+        color: "#666666",
+        marginTop: 5,
+        fontStyle: "italic",
+      },
+      hr: {
+        borderBottomWidth: 1,
+        borderBottomColor: "#eeeeee",
+        marginVertical: 20,
+      },
     });
   };
 
@@ -278,6 +298,38 @@ export const PdfDocument = ({
             </Text>
           </View>
         );
+      case "image":
+        return (
+          <View key={index} style={styles.imageWrapper}>
+            <Image src={node.attrs?.src} style={styles.image} />
+            {node.attrs?.title && (
+              <Text style={styles.imageCaption}>{node.attrs.title}</Text>
+            )}
+          </View>
+        );
+      case "fileLink":
+        return (
+          <Text
+            key={index}
+            style={[
+              styles.paragraph,
+              { color: "#4f46e5", textDecoration: "underline" },
+            ]}
+          >
+            [{node.attrs?.label || "Note Link"}]
+          </Text>
+        );
+      case "mention":
+        return (
+          <Text
+            key={index}
+            style={[styles.paragraph, { color: "#16a34a", fontWeight: "bold" }]}
+          >
+            @{node.attrs?.label || "User"}
+          </Text>
+        );
+      case "horizontalRule":
+        return <View key={index} style={styles.hr} />;
       default:
         return null;
     }

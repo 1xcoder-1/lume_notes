@@ -120,6 +120,7 @@ export type ToolbarProps = {
   disabled?: boolean;
   isDirty?: boolean;
   canShare?: boolean;
+  onShowGraph?: () => void;
 };
 
 export function Toolbar({
@@ -140,6 +141,7 @@ export function Toolbar({
   disabled = false,
   isDirty = false,
   canShare = true,
+  onShowGraph,
 }: ToolbarProps) {
   if (!editor) return null;
 
@@ -1301,28 +1303,33 @@ export function Toolbar({
         onChange={onImageUpload}
       />
       <div className="flex items-center gap-1.5">
-        {onToggleLeftSidebar && (
+        <div>
+          {onToggleLeftSidebar && (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={onToggleLeftSidebar}
+              className="h-8 w-8 p-0"
+            >
+              <PanelLeft
+                className={cn(
+                  "size-5",
+                  isLeftSidebarOpen ? "text-primary" : "text-muted-foreground"
+                )}
+              />
+            </Button>
+          )}
+        </div>
+        {onShowGraph && (
           <Button
             size="sm"
             variant="ghost"
-            onClick={onToggleLeftSidebar}
-            className="h-8 w-8 p-0"
+            onClick={onShowGraph}
+            className={itemCls(false)}
           >
-            <PanelLeft
-              className={cn(
-                "size-5",
-                isLeftSidebarOpen ? "text-primary" : "text-muted-foreground"
-              )}
-            />
+            <span className="text-[10px] font-bold">Graph</span>
           </Button>
         )}
-        <AIAssistant
-          editor={editor}
-          noteId={noteId}
-          currentTags={tags}
-          onUpdateTags={handleUpdateTags}
-          disabled={readOnly || saving}
-        />
       </div>
       <div
         ref={toolbarRef}
@@ -1400,39 +1407,32 @@ export function Toolbar({
             <Download className="size-4" />
           </Button>
         )}
-        <Button
-          size="sm"
-          onClick={onSave}
-          disabled={disabled || saving || (!isDirty && !saving)}
-          className={cn(
-            "relative shrink-0 overflow-hidden rounded-lg font-semibold transition-all",
-            isDirty
-              ? "bg-primary text-primary-foreground hover:bg-primary/90 px-6 shadow-md"
-              : "text-muted-foreground hover:bg-accent border border-gray-600/30 bg-transparent px-4",
-            saving && "px-6"
-          )}
-        >
-          <div className="flex items-center justify-center gap-2">
-            {saving ? (
-              <>
-                <Loader2 className="text-primary-foreground size-4 animate-spin" />
-                <span>Saving...</span>
-              </>
-            ) : (
-              <>
-                <Save
-                  className={cn(
-                    "size-4 md:mr-1.5",
-                    isDirty ? "animate-bounce" : ""
-                  )}
-                />
-                <span className="hidden md:inline">
+        <div className="flex flex-col items-stretch gap-1">
+          <Button
+            size="sm"
+            onClick={onSave}
+            disabled={disabled || saving || (!isDirty && !saving)}
+            className={cn(
+              "relative h-8 w-14 shrink-0 overflow-hidden rounded-lg font-semibold transition-all",
+              isDirty
+                ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-md"
+                : "text-muted-foreground hover:bg-accent border border-gray-600/30 bg-transparent"
+            )}
+          >
+            <div className="flex items-center justify-center gap-2">
+              {saving ? (
+                <>
+                  <Loader2 className="text-primary-foreground size-3 animate-spin" />
+                  <span className="text-[10px]">Saving...</span>
+                </>
+              ) : (
+                <span className="text-[10px]">
                   {isDirty ? "Save" : "Saved"}
                 </span>
-              </>
-            )}
-          </div>
-        </Button>
+              )}
+            </div>
+          </Button>
+        </div>
       </div>
     </div>
   );

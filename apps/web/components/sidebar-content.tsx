@@ -104,6 +104,8 @@ interface SidebarContentProps {
   onExportNote?: (note: Note) => void;
   onShareNote?: (note: Note) => void;
   onPDFUpload?: (file: File) => void;
+  onSelectFolder?: (folderId: string | null) => void;
+  selectedFolderId?: string | null;
 }
 
 function UpgradeBanner({ onUpgrade }: { onUpgrade: () => void }) {
@@ -612,6 +614,8 @@ export const SidebarContent = React.memo(function SidebarContent({
   onExportNote,
   onShareNote,
   onPDFUpload,
+  onSelectFolder,
+  selectedFolderId,
 }: SidebarContentProps) {
   const [selectedTag, setSelectedTag] = React.useState<string | null>(null);
   const isLoading = tenantLoading || notesLoading;
@@ -1000,11 +1004,12 @@ export const SidebarContent = React.memo(function SidebarContent({
           <Plus className="mr-1.5 size-4" />
           New Note
         </Button>
+
         <div className="relative mb-2">
           <input
             type="file"
             id="sidebar-file-upload"
-            accept="application/pdf,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/msword,image/*,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/vnd.ms-excel"
+            accept="application/pdf"
             className="hidden"
             onChange={e => {
               const file = e.target.files?.[0];

@@ -57,7 +57,23 @@ import {
   Eye,
   EyeOff,
   Share2,
+  Plus,
+  FileCheck,
+  ClipboardList,
+  Briefcase,
+  FileText,
+  Info,
+  Sparkles,
+  Calendar,
+  Zap,
+  BookOpen,
+  Bug,
+  Target,
+  ListTodo,
+  Rocket,
 } from "lucide-react";
+import { NOTE_TEMPLATES, type Template } from "@/lib/templates";
+import { cn } from "@workspace/ui/lib/utils";
 import { toast } from "sonner";
 const Confetti = React.lazy(() => import("react-confetti"));
 
@@ -78,6 +94,7 @@ import { useQueryClient } from "@tanstack/react-query";
 import { NoteEditorContainer } from "@/components/note-editor-container";
 import { ExportModal } from "@/components/export-modal";
 import { ShareModal } from "@/components/share-modal";
+import { GraphView } from "@/components/graph-view";
 import {
   createNoteSchema,
   updateNoteSchema,
@@ -185,11 +202,28 @@ function NotesDashboardContent() {
   const [showPassword, setShowPassword] = useState(false);
   const [inviteError, setInviteError] = useState("");
   const [createNoteError, setCreateNoteError] = useState("");
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string | null>(
+    null
+  );
 
   const [showExportModal, setShowExportModal] = useState(false);
   const [showShareModal, setShowShareModal] = useState(false);
   const [exportNote, setExportNoteState] = useState<Note | null>(null);
   const [shareNote, setShareNoteState] = useState<Note | null>(null);
+  const [showGraphView, setShowGraphView] = useState(false);
+  const [selectedFolderId, setSelectedFolderId] = useState<string | null>(null);
+
+  const handleSelectFolder = useCallback((folderId: string | null) => {
+    setSelectedFolderId(folderId);
+    const newUrl = new URL(window.location.href);
+    if (folderId) {
+      newUrl.searchParams.set("folder", folderId);
+      newUrl.searchParams.delete("note"); // Clear note when opening folder
+    } else {
+      newUrl.searchParams.delete("folder");
+    }
+    window.history.pushState({}, "", newUrl);
+  }, []);
 
   const updateNoteInList = useCallback(
     (noteId: string, updates: Partial<Note>) => {
@@ -219,26 +253,32 @@ function NotesDashboardContent() {
     }
   }, [session, status, router]);
 
+  // 1. URL Parameter Sync: Set selectedId whenever 'note' search param changes
+  useEffect(() => {
+    const noteParam = searchParams.get("note");
+    if (noteParam && noteParam !== selectedId) {
+      const noteExists = notes.some(note => note.id === noteParam);
+      if (noteExists) {
+        console.log("URL Sync: Switching to note from URL param:", noteParam);
+        setSelectedId(noteParam);
+        setIsEditorDirty(false); // Reset dirty flag when switching via URL
+      }
+    }
+  }, [searchParams, notes, selectedId]);
+
+  // 2. Initial selection: Handle default note if none specified
   const hasInitializedRef = useRef(false);
   useEffect(() => {
     if (notes.length === 0 || hasInitializedRef.current) return;
 
     const noteParam = searchParams.get("note");
-
-    if (noteParam) {
-      const noteExists = notes.some(note => note.id === noteParam);
-      if (noteExists) {
-        setSelectedId(noteParam);
-        setIsEditorDirty(false); // Reset dirty flag on initial load
-        hasInitializedRef.current = true;
-        return;
-      }
-    }
-
-    const firstNoteId = notes[0]!?.id;
-    if (firstNoteId) {
+    if (!noteParam && notes[0]!?.id) {
+      const firstNoteId = notes[0]!?.id;
+      console.log(
+        "Initial Load: No note in URL, defaulting to first note:",
+        firstNoteId
+      );
       setSelectedId(firstNoteId);
-      setIsEditorDirty(false); // Reset dirty flag on initial load
       const newSearchParams = new URLSearchParams(searchParams);
       newSearchParams.set("note", firstNoteId);
       router.replace(`?${newSearchParams.toString()}`, { scroll: false });
@@ -328,23 +368,24 @@ function NotesDashboardContent() {
         return;
       }
 
-      const validationResult = createNoteSchema.safeParse({
-        title: newTitle,
-        content: {
-          type: "doc",
-          content: [
-            {
-              type: "paragraph",
-              content: [
-                {
-                  type: "text",
-                  text: "Start writing your note here...",
-                },
-              ],
-            },
-          ],
-        },
-      });
+      const selectedTemplate = selectedTemplateId
+        ? NOTE_TEMPLATES.find(t => t.id === selectedTemplateId)
+        : null;
+
+      const defaultContent = {
+        type: "doc",
+        content: [{ type: "paragraph" }],
+      };
+
+      const noteData = {
+        title:
+          newTitle ||
+          (selectedTemplate ? selectedTemplate.title : "Untitled Note"),
+        content: selectedTemplate ? selectedTemplate.content : defaultContent,
+        tags: selectedTemplate ? selectedTemplate.tags : [],
+      };
+
+      const validationResult = createNoteSchema.safeParse(noteData);
 
       if (!validationResult.success) {
         setCreateNoteError(
@@ -353,20 +394,15 @@ function NotesDashboardContent() {
         return;
       }
 
-      const validatedData = validationResult.data;
-      const noteData = {
-        title: validatedData.title!,
-        content: validatedData.content,
-      };
-
       setShowCreateForm(false);
       setNewTitle("");
+      setSelectedTemplateId(null);
       setCreateNoteError("");
 
       try {
         const result = await createNoteMutation.mutateAsync(noteData);
         handleSelectNote(result.id);
-        toast.success(`"${result.title || "Untitled"}" is ready.`);
+        toast.success(`"${result.title || "Untitled"}" created from template.`);
         setIsSheetOpen(false);
       } catch (err) {
         toast.error("An unexpected error occurred. Please try again.");
@@ -375,12 +411,14 @@ function NotesDashboardContent() {
     [
       limitReached,
       newTitle,
+      selectedTemplateId,
       createNoteMutation,
       handleSelectNote,
       setShowCreateForm,
       setNewTitle,
       setCreateNoteError,
       setIsSheetOpen,
+      createRestricted,
     ]
   );
 
@@ -599,193 +637,137 @@ function NotesDashboardContent() {
         return;
       }
 
-      const toastId = toast.loading(
-        `Processing ${file.type.startsWith("image/") ? "Image" : file.name.endsWith(".pdf") ? "PDF" : "Document"}...`
-      );
+      if (!file.name.toLowerCase().endsWith(".pdf")) {
+        toast.error("Only PDF files are supported for import.");
+        return;
+      }
+
+      const toastId = toast.loading(`Processing PDF: ${file.name}...`);
 
       try {
-        let noteContent: any[] = [];
-        let tags = ["Imported"];
-
-        if (file.type.startsWith("image/")) {
-          const reader = new FileReader();
-          const base64Promise = new Promise<string>((resolve, reject) => {
-            reader.onload = () => {
-              const res = reader.result;
-              if (typeof res === "string") resolve(res.split(",")[1] || "");
-              else reject(new Error("Failed to read file"));
-            };
-            reader.onerror = () => reject(reader.error);
-            reader.readAsDataURL(file);
-          });
-          const base64 = await base64Promise;
-
-          const response = await fetch("/api/ai/chat", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              option: "summarize",
-              context:
-                "Describe this image in detail including any visible text, objects, and overall context.",
-              fileData: base64,
-              mimeType: file.type,
-            }),
-          });
-
-          if (!response.ok) throw new Error("Vision AI failed");
-
-          const text = await response.text();
-          noteContent = [
-            {
-              type: "paragraph",
-              content: [
-                { type: "text", text: `[Image Description from ${file.name}]` },
-              ],
-            },
-            { type: "paragraph", content: [{ type: "text", text: text }] },
-          ];
-          tags.push("Image", "AI-Parsed");
-        } else if (
-          file.type ===
-            "application/vnd.openxmlformats-officedocument.wordprocessingml.document" ||
-          file.type === "application/msword"
-        ) {
-          const mammoth = await import("mammoth");
-          const arrayBuffer = await file.arrayBuffer();
-          const result = await mammoth.extractRawText({ arrayBuffer });
-
-          noteContent = result.value
-            .split("\n\n")
-            .map(p => ({
-              type: "paragraph",
-              content: p.trim() ? [{ type: "text", text: p.trim() }] : [],
-            }))
-            .filter(p => (p.content?.length ?? 0) > 0);
-
-          tags.push("Word", "Document");
-        } else {
-          const pdfLib = getPdfLib();
-          if (!pdfLib) throw new Error("PDF library not loaded");
-
-          pdfLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.worker.min.mjs`;
-
-          const arrayBuffer = await file.arrayBuffer();
-          const pdf = await pdfLib.getDocument({ data: arrayBuffer }).promise;
-
-          let totalLength = 0;
-          const MAX_LENGTH = 15000;
-
-          for (let i = 1; i <= pdf.numPages; i++) {
-            const page = await pdf.getPage(i);
-            const textContent = await page.getTextContent();
-            const items = textContent.items as any[];
-            if (items.length === 0) continue;
-
-            const lines: { y: number; height: number; text: string }[] = [];
-            let currentLine: {
-              y: number;
-              height: number;
-              text: string;
-            } | null = null;
-            items.sort(
-              (a, b) =>
-                b.transform[5] - a.transform[5] ||
-                a.transform[4] - b.transform[4]
-            );
-
-            for (const item of items) {
-              if (!item.str?.trim()) continue;
-              const y = item.transform[5];
-              const height = item.height || 0;
-              if (!currentLine || Math.abs(currentLine.y - y) > height / 2) {
-                currentLine = { y, height, text: item.str };
-                lines.push(currentLine);
-              } else {
-                currentLine.text += " " + item.str;
-                if (height > currentLine.height) currentLine.height = height;
-              }
-            }
-
-            let currentParagraph = "";
-            let lastY = 0;
-            for (let j = 0; j < lines.length; j++) {
-              if (totalLength > MAX_LENGTH) break;
-              const line = lines[j];
-              if (!line) continue;
-              const isHeading = line.height > 13;
-              const isLargeGap =
-                j > 0 && Math.abs(lastY - line.y) > line.height * 1.8;
-
-              if (isHeading || isLargeGap) {
-                if (currentParagraph.trim()) {
-                  noteContent.push({
-                    type: "paragraph",
-                    content: [{ type: "text", text: currentParagraph.trim() }],
-                  });
-                  totalLength += currentParagraph.length;
-                  currentParagraph = "";
-                }
-                if (isHeading && totalLength <= MAX_LENGTH) {
-                  noteContent.push({
-                    type: "heading",
-                    attrs: { level: line.height > 18 ? 2 : 3 },
-                    content: [{ type: "text", text: line.text.trim() }],
-                  });
-                  totalLength += line.text.length;
-                } else if (totalLength <= MAX_LENGTH) {
-                  currentParagraph = line.text;
-                }
-              } else {
-                currentParagraph += (currentParagraph ? " " : "") + line.text;
-              }
-              lastY = line.y;
-            }
-            if (currentParagraph.trim() && totalLength <= MAX_LENGTH) {
-              noteContent.push({
-                type: "paragraph",
-                content: [{ type: "text", text: currentParagraph.trim() }],
-              });
-              totalLength += currentParagraph.length;
-            }
-            if (totalLength > MAX_LENGTH) break;
-          }
-
-          if (totalLength > MAX_LENGTH) {
-            noteContent.push({
-              type: "paragraph",
-              content: [
-                {
-                  type: "text",
-                  text: "... [Content truncated for chat context]",
-                },
-              ],
-            });
-          }
-          tags.push("PDF");
+        const pdfLib = getPdfLib();
+        if (!pdfLib) {
+          throw new Error("PDF library not loaded");
         }
 
-        // 3. TITLE CLEANUP: Remove extensions and format title
-        const cleanTitle = file.name
-          .replace(/\.(pdf|csv|xlsx|xls|docx?|txt)$/i, "")
-          .substring(0, 40);
+        const arrayBuffer = await file.arrayBuffer();
+        const loadingTask = pdfLib.getDocument({ data: arrayBuffer });
+        const pdf = await loadingTask.promise;
+
+        const noteContent: any[] = [];
+        let totalLength = 0;
+        const MAX_LENGTH = 15000;
+
+        const tags = ["imported", "pdf"];
+
+        for (let i = 1; i <= pdf.numPages; i++) {
+          const page = await pdf.getPage(i);
+          const textContent = await page.getTextContent();
+          const items = textContent.items as any[];
+          if (items.length === 0) continue;
+
+          const lines: { y: number; height: number; text: string }[] = [];
+          let currentLine: {
+            y: number;
+            height: number;
+            text: string;
+          } | null = null;
+
+          items.sort(
+            (a, b) =>
+              b.transform[5] - a.transform[5] || a.transform[4] - b.transform[4]
+          );
+
+          for (const item of items) {
+            if (!item.str?.trim()) continue;
+            const y = item.transform[5];
+            const height = item.height || 0;
+            if (!currentLine || Math.abs(currentLine.y - y) > height / 2) {
+              currentLine = { y, height, text: item.str };
+              lines.push(currentLine);
+            } else {
+              currentLine.text += " " + item.str;
+              if (height > currentLine.height) currentLine.height = height;
+            }
+          }
+
+          let currentParagraph = "";
+          let lastY = 0;
+          for (let j = 0; j < lines.length; j++) {
+            if (totalLength > MAX_LENGTH) break;
+            const line = lines[j];
+            if (!line) continue;
+            const isHeading = line.height > 13;
+            const isLargeGap =
+              j > 0 && Math.abs(lastY - line.y) > line.height * 1.8;
+
+            if (isHeading || isLargeGap) {
+              if (currentParagraph.trim()) {
+                noteContent.push({
+                  type: "paragraph",
+                  content: [{ type: "text", text: currentParagraph.trim() }],
+                });
+                totalLength += currentParagraph.length;
+                currentParagraph = "";
+              }
+              if (isHeading && totalLength <= MAX_LENGTH) {
+                noteContent.push({
+                  type: "heading",
+                  attrs: { level: line.height > 18 ? 2 : 3 },
+                  content: [{ type: "text", text: line.text.trim() }],
+                });
+                totalLength += line.text.length;
+              } else if (totalLength <= MAX_LENGTH) {
+                currentParagraph = line.text;
+              }
+            } else {
+              currentParagraph += (currentParagraph ? " " : "") + line.text;
+            }
+            lastY = line.y;
+          }
+
+          if (currentParagraph.trim() && totalLength <= MAX_LENGTH) {
+            noteContent.push({
+              type: "paragraph",
+              content: [{ type: "text", text: currentParagraph.trim() }],
+            });
+            totalLength += currentParagraph.length;
+          }
+
+          if (totalLength > MAX_LENGTH) break;
+        }
+
+        if (totalLength > MAX_LENGTH) {
+          noteContent.push({
+            type: "paragraph",
+            content: [
+              {
+                type: "text",
+                text: "... [Content truncated for chat context]",
+              },
+            ],
+          });
+        }
+
+        const cleanTitle = file.name.replace(/\.pdf$/i, "").substring(0, 40);
 
         const noteData = {
-          title: cleanTitle || "Imported Note",
+          title: cleanTitle || "Imported PDF Note",
           content: { type: "doc", content: noteContent },
           tags: tags,
         };
 
         const result = await createNoteMutation.mutateAsync(noteData);
         handleSelectNote(result.id);
-        toast.success(`File "${file.name}" imported and preserved as a Note!`, {
+        toast.success(`PDF "${file.name}" imported successfully!`, {
           id: toastId,
         });
       } catch (err) {
-        console.error("File processing error:", err);
+        console.error("PDF processing error:", err);
         toast.error(`Failed to process ${file.name}`, { id: toastId });
       }
     },
-    [limitReached, createNoteMutation, handleSelectNote]
+    [limitReached, createNoteMutation, handleSelectNote, createRestricted]
   );
 
   return (
@@ -823,51 +805,204 @@ function NotesDashboardContent() {
       </div>
 
       {}
-      <Dialog open={showCreateForm} onOpenChange={setShowCreateForm}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Create New Note</DialogTitle>
+      <Dialog
+        open={showCreateForm}
+        onOpenChange={open => {
+          setShowCreateForm(open);
+          if (!open) {
+            setSelectedTemplateId(null);
+            setNewTitle("");
+          }
+        }}
+      >
+        <DialogContent className="flex max-h-[90vh] flex-col overflow-hidden p-0 sm:max-w-2xl">
+          <DialogHeader className="p-6 pb-2">
+            <DialogTitle className="flex items-center gap-2 text-xl">
+              <Plus className="text-primary size-5" />
+              Create New Note
+            </DialogTitle>
             <DialogDescription>
-              Add a new note to your collection.
+              Start from scratch or use a professional template to save time.
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleCreateNote} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="title">Title</Label>
-              <Input
-                id="title"
-                placeholder="Enter note title"
-                value={newTitle}
-                onChange={e => setNewTitle(e.target.value)}
-              />
+
+          <div className="custom-scrollbar flex-1 overflow-y-auto px-6 py-2">
+            <div className="space-y-6">
+              <div className="space-y-3">
+                <Label htmlFor="title" className="text-sm font-semibold">
+                  Note Title
+                </Label>
+                <Input
+                  id="title"
+                  placeholder="Enter note title (optional if using template)"
+                  value={newTitle}
+                  onChange={e => setNewTitle(e.target.value)}
+                  className="h-11"
+                />
+              </div>
+
+              <div className="space-y-4 pb-4">
+                <div className="flex items-center justify-between">
+                  <Label className="text-sm font-semibold">
+                    Pick a Template
+                  </Label>
+                  <span className="text-muted-foreground text-[10px] font-bold tracking-widest uppercase">
+                    Standard Library
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+                  <button
+                    type="button"
+                    onClick={() => setSelectedTemplateId(null)}
+                    className={cn(
+                      "group relative flex flex-col items-start overflow-hidden rounded-xl border p-4 text-left transition-all duration-200",
+                      selectedTemplateId === null
+                        ? "border-primary bg-primary/5 ring-primary/20 ring-1"
+                        : "border-border hover:border-primary/50 hover:bg-accent/40"
+                    )}
+                  >
+                    <div
+                      className={cn(
+                        "mb-3 flex size-10 items-center justify-center rounded-lg transition-colors",
+                        selectedTemplateId === null
+                          ? "bg-primary text-primary-foreground"
+                          : "bg-muted text-muted-foreground group-hover:text-primary group-hover:bg-primary/10"
+                      )}
+                    >
+                      <FileText className="size-5" />
+                    </div>
+                    <span className="mb-1 text-sm font-semibold">
+                      Blank Note
+                    </span>
+                    <span className="text-muted-foreground line-clamp-2 text-[10px]">
+                      Start with a clean slate for full creative freedom.
+                    </span>
+
+                    {selectedTemplateId === null && (
+                      <div className="absolute top-2 right-2">
+                        <FileCheck className="text-primary size-4" />
+                      </div>
+                    )}
+                  </button>
+
+                  {/* Render categories */}
+                  {["Professional", "Personal", "Technical", "General"].map(
+                    cat => {
+                      const catTemplates = NOTE_TEMPLATES.filter(
+                        t => t.category === cat
+                      );
+                      if (catTemplates.length === 0) return null;
+
+                      return (
+                        <React.Fragment key={cat}>
+                          <div className="col-span-full mt-4 flex items-center gap-2">
+                            <span className="text-muted-foreground text-[10px] font-bold tracking-widest uppercase">
+                              {cat}
+                            </span>
+                            <div className="bg-border/50 h-px flex-1"></div>
+                          </div>
+                          {catTemplates.map(template => {
+                            const IconComponent =
+                              {
+                                ClipboardList,
+                                Briefcase,
+                                FileText,
+                                Info,
+                                Calendar,
+                                Zap,
+                                BookOpen,
+                                Bug,
+                                Target,
+                                ListTodo,
+                                Rocket,
+                              }[template.icon] || FileText;
+
+                            return (
+                              <button
+                                key={template.id}
+                                type="button"
+                                onClick={() =>
+                                  setSelectedTemplateId(template.id)
+                                }
+                                className={cn(
+                                  "group relative flex flex-col items-start overflow-hidden rounded-xl border p-4 text-left transition-all duration-200",
+                                  selectedTemplateId === template.id
+                                    ? "border-primary bg-primary/5 ring-primary/20 ring-1"
+                                    : "border-border hover:border-primary/50 hover:bg-accent/40"
+                                )}
+                              >
+                                <div
+                                  className={cn(
+                                    "mb-3 flex size-10 items-center justify-center rounded-lg transition-colors",
+                                    selectedTemplateId === template.id
+                                      ? "bg-primary text-primary-foreground"
+                                      : "bg-muted text-muted-foreground group-hover:text-primary group-hover:bg-primary/10"
+                                  )}
+                                >
+                                  <IconComponent className="size-5" />
+                                </div>
+                                <span className="mb-1 text-sm font-semibold">
+                                  {template.title}
+                                </span>
+                                <span className="text-muted-foreground line-clamp-2 text-[10px]">
+                                  {template.description}
+                                </span>
+
+                                {selectedTemplateId === template.id && (
+                                  <div className="absolute top-2 right-2">
+                                    <FileCheck className="text-primary size-4" />
+                                  </div>
+                                )}
+                              </button>
+                            );
+                          })}
+                        </React.Fragment>
+                      );
+                    }
+                  )}
+                </div>
+              </div>
             </div>
+
             {createNoteError && (
-              <Alert variant="destructive">
+              <Alert variant="destructive" className="mt-4">
                 <AlertTriangle className="h-4 w-4" />
                 <AlertDescription>{createNoteError}</AlertDescription>
               </Alert>
             )}
-            <div className="flex justify-end space-x-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setShowCreateForm(false)}
-                disabled={createNoteMutation.isPending}
-              >
-                Cancel
-              </Button>
-              <Button type="submit" disabled={createNoteMutation.isPending}>
-                {createNoteMutation.isPending ? (
-                  <>
-                    <Loader2 className="h-4 w-4 animate-spin" />
-                    Creating...
-                  </>
-                ) : (
-                  "Create Note"
-                )}
-              </Button>
-            </div>
-          </form>
+          </div>
+
+          <div className="bg-muted/30 flex justify-end space-x-2 border-t p-6">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setShowCreateForm(false);
+                setSelectedTemplateId(null);
+              }}
+              disabled={createNoteMutation.isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={e => handleCreateNote(e as any)}
+              disabled={createNoteMutation.isPending}
+              className="min-w-[120px]"
+            >
+              {createNoteMutation.isPending ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Creating...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="mr-2 size-4" />
+                  Create Note
+                </>
+              )}
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
 
@@ -1063,6 +1198,8 @@ function NotesDashboardContent() {
             onExportNote={handleExportNote}
             onShareNote={handleShareNote}
             onPDFUpload={handlePDFUpload}
+            onSelectFolder={handleSelectFolder}
+            selectedFolderId={selectedFolderId}
           />
         </aside>
 
@@ -1078,7 +1215,6 @@ function NotesDashboardContent() {
             isSheetOpen={isSheetOpen}
             onLogout={handleLogout}
           >
-            {}
             <SheetContent side="left" className="w-72 gap-0 p-0">
               <SidebarContent
                 notes={notes}
@@ -1102,6 +1238,8 @@ function NotesDashboardContent() {
                 onExportNote={handleExportNote}
                 onShareNote={handleShareNote}
                 onPDFUpload={handlePDFUpload}
+                onSelectFolder={handleSelectFolder}
+                selectedFolderId={selectedFolderId}
               />
             </SheetContent>
           </Topbar>
@@ -1136,6 +1274,7 @@ function NotesDashboardContent() {
                   registerSaveFn={registerSaveFn}
                   isAdmin={user?.role === "admin"}
                   readOnly={editRestricted}
+                  onShowGraph={() => setShowGraphView(true)}
                 />
 
                 {}
@@ -1239,6 +1378,14 @@ function NotesDashboardContent() {
           </div>
         </section>
       </div>
+
+      {showGraphView && (
+        <div className="animate-in fade-in zoom-in fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm duration-300 md:p-8">
+          <div className="h-full max-h-[90vh] w-full max-w-6xl">
+            <GraphView onClose={() => setShowGraphView(false)} />
+          </div>
+        </div>
+      )}
     </React.Suspense>
   );
 }

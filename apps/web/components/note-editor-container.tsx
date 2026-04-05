@@ -25,6 +25,7 @@ export interface NoteEditorContainerProps {
   onShareNote?: (note: Note) => void;
   isAdmin: boolean;
   readOnly?: boolean;
+  onShowGraph?: () => void;
 }
 
 export const NoteEditorContainer = React.memo(function NoteEditorContainer(

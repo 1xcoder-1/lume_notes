@@ -91,7 +91,12 @@ export const api = {
     return response.json();
   },
 
-  createNote: async (data: { title: string; content: any }): Promise<Note> => {
+  createNote: async (data: {
+    title: string;
+    content: any;
+    tags?: string[];
+    folderId?: string | null;
+  }): Promise<Note> => {
     const response = await fetch(`/api/notes`, {
       method: "POST",
       headers: getAuthHeaders(),
@@ -338,14 +343,14 @@ export const useOrganizationStats = (enabled: boolean = true) => {
 export const useCreateNote = (): UseMutationResult<
   Note,
   Error,
-  { title: string; content: any },
+  { title: string; content: any; tags?: string[]; folderId?: string | null },
   { previousNotes: Note[] | undefined }
 > => {
   const queryClient = useQueryClient();
   return useMutation<
     Note,
     Error,
-    { title: string; content: any },
+    { title: string; content: any; tags?: string[]; folderId?: string | null },
     { previousNotes: Note[] | undefined }
   >({
     mutationFn: api.createNote,

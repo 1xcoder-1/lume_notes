@@ -8,9 +8,11 @@ This feature takes your note's title and content and reformats everything into a
 
 ## Key Features
 
-1. **Full Content**: Exports headings, paragraphs, and lists as you see them.
-2. **Clean Layout**: High readability for offline viewing or printing.
-3. **Instant Preview**: See how the document will look before you save it.
+1. **Full Content Hierarchy**: Exports all headings, paragraphs, lists, and formatting.
+2. **Integrated Image Rendering**: All images (including local uploads and copy-pasted images) are fully exported with correct scaling and captions.
+3. **Smart References**: Note links and member mentions are rendered as visually distinct elements.
+4. **Dividers and Layout**: Horizontal rules and paragraph spacing are perfectly preserved.
+5. **Clean Layout**: High readability for offline viewing or printing.
 
 ## Technical Details
 

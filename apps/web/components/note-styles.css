@@ -327,6 +327,13 @@
     cursor: text;
   }
 
+  .tiptap ul[data-type="taskList"] li[data-checked="true"] > span,
+  .tiptap ul[data-type="taskList"] li[data-checked="true"] > div {
+    text-decoration: line-through;
+    color: var(--muted-foreground);
+    opacity: 0.6;
+  }
+
   .tiptap table {
     display: block;
     width: 100%;

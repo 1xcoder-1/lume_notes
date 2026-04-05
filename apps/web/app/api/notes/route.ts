@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: errorMessage }, { status: 400 });
     }
 
-    const { title, content, folder, folderId } = validationResult.data;
+    const { title, content, folder, folderId, tags } = validationResult.data;
 
     const tenant = await prisma.tenant.findUnique({
       where: { id: session.user.tenantId },
@@ -85,6 +85,7 @@ export async function POST(request: NextRequest) {
         author_id: session.user.id,
         folder,
         folderId: folderId || null,
+        tags: tags || [],
       } as any,
       include: { author: { select: { email: true } } },
     });

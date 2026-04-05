@@ -54,6 +54,7 @@ Detailed guides for all major features:
 
 - [User Authentication](docs/user_authentication.md) — How we handle login and security.
 - [Rich Text Editor](docs/rich_text_editor.md) — Our professional editing experience.
+- [Slash Commands](docs/slash_commands.md) — Faster editing and note linking with `/`.
 - [Real-Time Collaboration](docs/realtime_collaboration.md) — Character-by-character syncing.
 - [AI Assistant](docs/aiassistant.md) — How AI helps you write and search.
 

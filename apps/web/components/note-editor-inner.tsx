@@ -7,6 +7,7 @@ import React, {
   useState,
   useMemo,
 } from "react";
+import { useRouter } from "next/navigation";
 import { ScrollArea } from "@workspace/ui/components/scroll-area";
 import { Skeleton } from "@workspace/ui/components/skeleton";
 import { NoteEditor, Toolbar } from "./note-editor";
@@ -39,9 +40,10 @@ import {
   useOrganizationUsers,
   useFolders,
   useTenant,
+  useNotes,
 } from "@/lib/api";
 import { NoteEditorSidebar } from "./note-editor-sidebar";
-import { AlertTriangle, User, Users } from "lucide-react";
+import { AlertTriangle, File, User, Users } from "lucide-react";
 import Collaboration from "@tiptap/extension-collaboration";
 import CollaborationCursor from "@tiptap/extension-collaboration-cursor";
 import {
@@ -66,6 +68,7 @@ export interface NoteEditorInnerProps {
   onShareNote?: (note: Note) => void;
   isAdmin: boolean;
   readOnly?: boolean;
+  onShowGraph?: () => void;
 }
 
 // Helper to get consistent color for users based on their ID
@@ -89,6 +92,35 @@ const getUserColor = (id: string) => {
   return colors[Math.abs(hash) % colors.length];
 };
 
+const FileLink = Mention.extend({
+  name: "fileLink",
+  addAttributes() {
+    return {
+      ...this.parent?.(),
+      id: {
+        default: null,
+        parseHTML: element => element.getAttribute("data-id"),
+        renderHTML: attributes => {
+          if (!attributes.id) return {};
+          return { "data-id": attributes.id };
+        },
+      },
+    };
+  },
+  renderHTML({ node, HTMLAttributes }) {
+    return [
+      "span",
+      {
+        ...HTMLAttributes,
+        class:
+          "file-link cursor-pointer text-indigo-500 hover:text-indigo-600 underline font-medium",
+        "data-id": node.attrs.id,
+      },
+      `${node.attrs.label ?? "Untitled"}`,
+    ];
+  },
+});
+
 export const NoteEditorInner = React.memo(function NoteEditorInner({
   noteId,
   onNoteUpdate,
@@ -103,11 +135,14 @@ export const NoteEditorInner = React.memo(function NoteEditorInner({
   onShareNote,
   isAdmin,
   readOnly = false,
+  onShowGraph,
 }: NoteEditorInnerProps) {
   const { data: noteData, isLoading, error } = useNote(noteId);
   const { data: foldersData } = useFolders();
   const { data: tenant } = useTenant();
+  const { data: notesData } = useNotes();
   const updateNoteMutation = useUpdateNote();
+  const router = useRouter();
 
   const note = noteData;
   const [currentTitle, setCurrentTitle] = useState(note?.title || "");
@@ -217,6 +252,73 @@ export const NoteEditorInner = React.memo(function NoteEditorInner({
     [organizationMembers, noteId, currentTitle]
   );
 
+  const fileLinkSuggestion = useMemo(
+    () => ({
+      char: "/",
+      items: ({ query }: { query: string }) => {
+        if (!notesData) return [];
+        return notesData
+          .filter(n => n.id !== noteId) // Don't link to self
+          .filter(n => n.title.toLowerCase().includes(query.toLowerCase()))
+          .slice(0, 10);
+      },
+
+      render: () => {
+        let component: any;
+        let popup: any;
+
+        return {
+          onStart: (props: any) => {
+            component = new ReactRenderer(FileLinkList, {
+              props: { ...props },
+              editor: props.editor,
+            });
+
+            if (!props.clientRect) {
+              return;
+            }
+
+            popup = tippy("body", {
+              getReferenceClientRect: props.clientRect,
+              appendTo: () => document.body,
+              content: component.element,
+              showOnCreate: true,
+              interactive: true,
+              trigger: "manual",
+              placement: "bottom-start",
+            });
+          },
+
+          onUpdate(props: any) {
+            component.updateProps(props);
+
+            if (!props.clientRect) {
+              return;
+            }
+
+            popup[0].setProps({
+              getReferenceClientRect: props.clientRect,
+            });
+          },
+
+          onKeyDown(props: any) {
+            if (props.event.key === "Escape") {
+              popup[0].hide();
+              return true;
+            }
+            return component.ref?.onKeyDown(props);
+          },
+
+          onExit() {
+            if (popup && popup[0]) popup[0].destroy();
+            if (component) component.destroy();
+          },
+        };
+      },
+    }),
+    [notesData, noteId]
+  );
+
   const editorShortcuts = useMemo(() => {
     return Extension.create({
       name: "editorShortcuts",
@@ -250,7 +352,7 @@ export const NoteEditorInner = React.memo(function NoteEditorInner({
           // @ts-ignore
           formatDocument:
             () =>
-            ({ tr, state, dispatch }) => {
+            ({ tr, state, dispatch }: any) => {
               const { doc } = state;
               interface TextChange {
                 from: number;
@@ -386,6 +488,13 @@ export const NoteEditorInner = React.memo(function NoteEditorInner({
         },
         suggestion: mentionSuggestion,
       }),
+      FileLink.configure({
+        HTMLAttributes: {
+          class:
+            "file-link bg-indigo-500/20 text-indigo-600 dark:text-indigo-400 font-semibold rounded-md px-1.5 py-0.5 border border-indigo-500/30 transition-all hover:bg-indigo-500/30 cursor-pointer",
+        },
+        suggestion: fileLinkSuggestion,
+      }),
       Heading.configure({ levels: [1, 2, 3] }),
       TaskList,
       TaskItem,
@@ -395,7 +504,7 @@ export const NoteEditorInner = React.memo(function NoteEditorInner({
         HTMLAttributes: { target: "_blank", rel: "noopener noreferrer" },
       }),
       Placeholder.configure({
-        placeholder: "Start typing...",
+        placeholder: "Start writing your note here...",
         emptyEditorClass: "is-editor-empty text-muted-foreground",
       }),
       TextAlign.configure({ types: ["heading", "paragraph", "image"] }),
@@ -429,7 +538,33 @@ export const NoteEditorInner = React.memo(function NoteEditorInner({
     immediatelyRender: false,
     extensions,
     editorProps,
+    onTransaction: ({ editor }) => {
+      // We can also use this for specific custom behavior if needed
+    },
   });
+
+  // Handle clicks on file links
+  useEffect(() => {
+    if (!editor || !router) return;
+
+    const handleEditorClick = (event: MouseEvent) => {
+      const target = event.target as HTMLElement;
+      const fileLink = target.closest(".file-link") as HTMLElement;
+      if (fileLink) {
+        const id = fileLink.getAttribute("data-id");
+        if (id) {
+          router.push(`/notes?note=${id}`);
+        }
+      }
+    };
+
+    const view = editor.view.dom;
+    view.addEventListener("click", handleEditorClick);
+
+    return () => {
+      view.removeEventListener("click", handleEditorClick);
+    };
+  }, [editor, router]);
 
   useEffect(() => {
     if (!editor || readOnly) return;
@@ -812,6 +947,7 @@ export const NoteEditorInner = React.memo(function NoteEditorInner({
         activeUsers={others as any}
         readOnly={readOnly}
         canShare={isAdmin || (tenant?.members_can_share ?? true)}
+        onShowGraph={onShowGraph}
       />
       <div className="flex flex-1 overflow-hidden">
         <NoteEditorSidebar
@@ -826,6 +962,7 @@ export const NoteEditorInner = React.memo(function NoteEditorInner({
           readOnly={readOnly}
           folders={foldersData || []}
           handleUpdateFolder={handleUpdateFolder}
+          onSelectNote={id => router.push(`/notes?note=${id}`)}
         />
         <div className="custom-scrollbar h-[calc(100vh-120px)] flex-1 overflow-x-hidden overflow-y-auto scroll-smooth md:h-[calc(100vh-60px)]">
           {readOnly && (
@@ -986,3 +1123,109 @@ const MentionList = React.forwardRef((props: any, ref) => {
   );
 });
 MentionList.displayName = "MentionList";
+
+const FileLinkList = React.forwardRef((props: any, ref) => {
+  const [selectedIndex, setSelectedIndex] = useState(0);
+
+  const selectItem = (index: number) => {
+    const item = props.items[index];
+    if (item) {
+      props.command({
+        id: item.id,
+        label: item.title || "Untitled",
+      });
+
+      toast.success(`Linked to "${item.title || "Untitled"}"`, {
+        icon: (
+          <div className="h-2 w-2 animate-pulse rounded-full bg-indigo-500" />
+        ),
+      });
+    }
+  };
+
+  useEffect(() => setSelectedIndex(0), [props.items]);
+
+  React.useImperativeHandle(ref, () => ({
+    onKeyDown: ({ event }: { event: KeyboardEvent }) => {
+      if (event.key === "ArrowUp") {
+        setSelectedIndex(
+          (selectedIndex + props.items.length - 1) % props.items.length
+        );
+        return true;
+      }
+      if (event.key === "ArrowDown") {
+        setSelectedIndex((selectedIndex + 1) % props.items.length);
+        return true;
+      }
+      if (event.key === "Enter") {
+        selectItem(selectedIndex);
+        return true;
+      }
+      return false;
+    },
+  }));
+
+  return (
+    <div className="bg-popover border-border/50 animate-in fade-in zoom-in-95 z-99999 flex min-w-[220px] flex-col overflow-hidden rounded-lg border p-1 text-white shadow-xl duration-200">
+      <div className="border-border/30 mb-1 border-b px-3 py-2 text-[12px] font-semibold tracking-widest text-white/60">
+        Insert Note Link
+      </div>
+
+      {props.items.length ? (
+        <div className="custom-scrollbar max-h-[300px] overflow-y-auto">
+          {props.items.map((item: any, index: number) => (
+            <button
+              key={item.id}
+              onClick={() => selectItem(index)}
+              className={cn(
+                "group relative flex w-full cursor-pointer items-center gap-3 rounded-md px-2.5 py-2 text-sm transition-all duration-200 outline-none select-none",
+                index === selectedIndex
+                  ? "bg-accent text-accent-foreground"
+                  : "hover:bg-accent/40 text-muted-foreground hover:text-foreground"
+              )}
+            >
+              <div
+                className={cn(
+                  "flex h-8 w-8 items-center justify-center rounded-lg border transition-all duration-300",
+                  index === selectedIndex
+                    ? "bg-primary text-primary-foreground border-primary shadow-[0_0_10px_rgba(var(--primary),0.3)]"
+                    : "bg-muted border-border group-hover:bg-background"
+                )}
+              >
+                <File className="h-4 w-4" />
+              </div>
+
+              <div className="flex min-w-0 flex-col text-left">
+                <span
+                  className={cn(
+                    "truncate leading-none font-medium",
+                    index === selectedIndex
+                      ? "text-foreground"
+                      : "text-muted-foreground group-hover:text-foreground"
+                  )}
+                >
+                  {item.title || "Untitled"}
+                </span>
+                <span className="text-muted-foreground mt-0.5 truncate text-[10px] opacity-70">
+                  {new Date(item.updated_at).toLocaleDateString()}
+                </span>
+              </div>
+
+              {index === selectedIndex && (
+                <div className="ml-auto flex items-center">
+                  <div className="bg-primary size-1.5 animate-pulse rounded-full" />
+                </div>
+              )}
+            </button>
+          ))}
+        </div>
+      ) : (
+        <div className="text-muted-foreground/50 flex flex-col items-center justify-center gap-2 px-4 py-8 text-xs italic">
+          <File className="mb-1 h-5 w-5 opacity-20" />
+          <span>No notes found</span>
+        </div>
+      )}
+    </div>
+  );
+});
+FileLinkList.displayName = "FileLinkList";

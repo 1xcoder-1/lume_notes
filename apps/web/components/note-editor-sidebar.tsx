@@ -25,6 +25,7 @@ import {
   Check,
 } from "lucide-react";
 import type { Note, Folder } from "@/lib/api";
+import { Backlinks } from "./backlinks";
 
 export interface NoteEditorSidebarProps {
   note: Note;
@@ -38,6 +39,7 @@ export interface NoteEditorSidebarProps {
   readOnly?: boolean;
   folders: Folder[];
   handleUpdateFolder: (folderName: string | null) => Promise<void>;
+  onSelectNote: (id: string) => void;
 }
 
 export const NoteEditorSidebar = React.memo(function NoteEditorSidebar({
@@ -52,6 +54,7 @@ export const NoteEditorSidebar = React.memo(function NoteEditorSidebar({
   readOnly = false,
   folders = [],
   handleUpdateFolder,
+  onSelectNote,
 }: NoteEditorSidebarProps) {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -255,6 +258,8 @@ export const NoteEditorSidebar = React.memo(function NoteEditorSidebar({
               </div>
             </div>
           </div>
+
+          <Backlinks currentNoteId={note.id} onSelectNote={onSelectNote} />
         </div>
       </ScrollArea>
     </aside>
