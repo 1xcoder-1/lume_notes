@@ -7,13 +7,15 @@
     "NODE_ENV",
     "NEXTAUTH_URL",
     "NEXTAUTH_SECRET",
+    "AUTH_SECRET",
     "GITHUB_CLIENT_ID",
     "GITHUB_CLIENT_SECRET",
     "GOOGLE_CLIENT_ID",
     "GOOGLE_CLIENT_SECRET",
     "BREVO_API_KEY",
     "BREVO_FROM_EMAIL",
-    "BREVO_FROM_NAME"
+    "BREVO_FROM_NAME",
+    "GOOGLE_GENERATIVE_AI_API_KEY"
   ],
   "tasks": {
     "build": {

@@ -1,5 +1,8 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+export const runtime = "nodejs";
+
 import React, {
   useCallback,
   useEffect,
@@ -94,7 +97,9 @@ import { useQueryClient } from "@tanstack/react-query";
 import { NoteEditorContainer } from "@/components/note-editor-container";
 import { ExportModal } from "@/components/export-modal";
 import { ShareModal } from "@/components/share-modal";
-import { GraphView } from "@/components/graph-view";
+const GraphView = React.lazy(() =>
+  import("@/components/graph-view").then(mod => ({ default: mod.GraphView }))
+);
 import {
   createNoteSchema,
   updateNoteSchema,
@@ -1382,7 +1387,15 @@ function NotesDashboardContent() {
       {showGraphView && (
         <div className="animate-in fade-in zoom-in fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4 backdrop-blur-sm duration-300 md:p-8">
           <div className="h-full max-h-[90vh] w-full max-w-6xl">
-            <GraphView onClose={() => setShowGraphView(false)} />
+            <React.Suspense
+              fallback={
+                <div className="bg-background flex h-full items-center justify-center rounded-xl p-8">
+                  <Loader2 className="text-primary animate-spin" />
+                </div>
+              }
+            >
+              <GraphView onClose={() => setShowGraphView(false)} />
+            </React.Suspense>
           </div>
         </div>
       )}

@@ -41,26 +41,49 @@ Date: 2026-03-27
 
 
 
-# Chat with PDF
+ 🚀 Trending "Notion-Style" Features (The Roadmap to Perfect)
 
-The Chat with PDF feature allows you to upload existing documents into your note and use the AI Assistant to discuss the PDF's content.
+### 1. Databases & Multi-View Layouts (The "Killer" Feature)
+Notion is famous because you can take one list and view it in multiple ways.
+*   **Kanban Boards:** Move notes between columns (e.g., *To-Do* → *Doing* → *Done*).
+*   **Calendar View:** See your notes/tasks on a calendar based on their "Created" or "Due" date.
+*   **Tables with Custom Properties:** Add fields like "Priority" (Low/High), "Assignee", or "Deadline" to each note.
 
-## How it works
+### 2. Block-Based Content Types
+While we have a great editor, we can add more specialized blocks:
+*   **Callout Blocks:** Highlighted boxes with icons for "Pro-Tips" or "Warnings".
+*   **Synced Blocks:** Edit a block in one note, and it updates automatically everywhere else it's used.
+*   **Embedded Code Sandboxes:** For developers to run code directly inside a note.
 
-Inside any note, you can click the "Chat / Import PDF" button. This uploads your file directly to our secure server, and the AI Assistant reads the document to understand it.
+### 3. Advanced Interlinking (Backlinks 2.0)
+We already have basic backlinks, but we can make them "Smart":
+*   **Global Search & Link:** A `/link` command that lets you search and link any other note instantly.
+*   **Bidirectional Previews:** Hover over a link to see a small popup of that note without leaving your current page.
 
-## Key Features
+### 4. Powerful Slash Commands (/)
+Notion's `/` command is the "magic wand." We should expand ours:
+*   `/database` - Insert a table instantly.
+*   `/image` - Open the image uploader.
+*   `/ai` - Trigger the AI assistant directly from the text line.
+*   `/template` - Insert a pre-saved block structure.
 
-1. **Instant PDF Import**: Strictly import any PDF file to add its text directly into your current note. Other formats like images or Word documents are currently unsupported to ensure parsing quality.
-2. **AI Question & Answer**: Ask the AI questions about the PDF (e.g., "Summarize this PDF" or "What are the main points?").
-3. **Multi-Document Support**: Chat with multiple PDFs to find connections between them.
+### 5. Collaboration & Real-Time Presence
+*   **Comment Threads:** Ability to highlight text and add a comment for a teammate.
+*   **Presence Avatars:** See exactly where someone else's cursor is in the note.
+*   **Activity Feed:** A "What's New" sidebar showing who edited what and when.
 
-## Technical Details
+---
 
-- **Location**: `apps/app/notes/page.tsx` (handlePDFUpload) and `apps/web/components/sidebar-content.tsx` (Upload UI).
-- **Enforcement**: We use client-side validation to ensure only `.pdf` files are accepted, preventing accidental uploads of incompatible formats.
-- **Processing**: High-quality text extraction from PDF pages, supporting complex layouts and fonts.
+## 💎 Why These Features Make an App "Trending"?
 
-## Note for others
+1.  **"Total Customization":** Users don't like being told how to organize. Databases let users build their *own* systems.
+2.  **"The Frictionless Flow":** Features like `/` commands and `[]` checkboxes make writing feel "faster than thinking."
+3.  **"One Tool for Everything":** By adding Databases and To-Dos, you change the app from a simple "Notebook" into a "Workspace" for entire companies.
 
-To add support for other file types (like Word or Images), you would need to implement a new parser in `handlePDFUpload` inside `page.tsx` and update the `accept` attribute in `sidebar-content.tsx`.
+---
+
+> [!TIP]
+> **Priority Target:** Our next big upgrade should be **Kanban Boards**—it's the most requested feature for project planning.
+
+> [!IMPORTANT]
+> **Aesthetic matters:** Keeping the UI clean while adding these complex features is what separates professional apps from cluttered ones.
