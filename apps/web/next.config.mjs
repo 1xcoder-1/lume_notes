@@ -1,6 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  transpilePackages: ["@workspace/ui"],
+  transpilePackages: ["@workspace/ui", "framer-motion", "motion-dom"],
   eslint: {
     ignoreDuringBuilds: true,
   },

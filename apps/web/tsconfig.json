@@ -6,11 +6,22 @@
       "@/*": ["*"],
       "@workspace/ui/*": ["../../packages/ui/src/*"]
     },
+    "types": [
+      "node",
+      "react",
+      "react-dom",
+      "jest",
+      "bcryptjs",
+      "cors",
+      "jsonwebtoken",
+      "supertest"
+    ],
     "plugins": [
       {
         "name": "next"
       }
-    ]
+    ],
+    "skipLibCheck": true
   },
   "include": [
     "next-env.d.ts",
