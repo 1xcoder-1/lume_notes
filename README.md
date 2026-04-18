@@ -18,7 +18,7 @@ A modern, full-stack notes app for organizations. Built with real-time collabora
 ### 1. Setup
 
 ```bash
-git clone https://github.com/RanitManik/lucide-note.git
+git clone https://github.com/1xcoder-1/lume_notes.git
 cd lucide-note
 pnpm install
 ```
