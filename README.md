@@ -75,6 +75,7 @@ Detailed guides for all major features:
 
 - [API Rate Limiting](docs/api_rate_limiting.md) — Keeping the service stable and secure.
 - [Deep Search](docs/deepsearch.md) — How our advanced search engine works.
+- [Google Cloud Deployment](docs/google_cloud_deployment.md) — Hosting on Cloud Run.
 
 ---
 
@@ -86,9 +87,5 @@ Detailed guides for all major features:
 - **Testing**: Jest, Playwright.
 
 ---
-
-## 📄 License
-
-MIT — Build something great!
 
 <div align="center">Built for creators and teams.</div>
