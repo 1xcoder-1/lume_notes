@@ -40,7 +40,7 @@ lume notes is a multi-tenant notes application built with Next.js, featuring rol
 1. **Fork and Clone the Repository**
 
    ```bash
-   git clone https://github.com/YOUR_USERNAME/lucide-note.git
+  git clone https://github.com/1xcoder-1/lume_notes.git
    cd lucide-note
    ```
 
@@ -349,7 +349,7 @@ Use the feature request template and include:
 
 For general questions or discussions:
 
-- Use [GitHub Discussions](https://github.com/RanitManik/lucide-note/discussions)
+- Use [GitHub Discussions](https://github.com/1xcpder-1/lume_notes/discussions)
 - Check existing issues and discussions first
 
 ## Code Review
