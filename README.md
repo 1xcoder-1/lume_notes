@@ -1,5 +1,3 @@
-<img width="70" src="https://raw.githubusercontent.com/RanitManik/lucide-note/refs/heads/main/apps/web/public/logo.svg" alt="Lume Notes Logo" />
-
 # Lume Notes
 
 A modern, full-stack notes app for organizations. Built with real-time collaboration, AI features, and secure multi-tenancy.
