@@ -359,7 +359,7 @@ export async function sendOrganizationInviteEmail(
     <div class="divider"></div>
 
     <p style="color: #6b7280; font-size: 14px;">
-      Questions? Reach out to <strong>${inviterName}</strong> or our support team at <a href="mailto:ranitmanikofficial@outlook.com" style="color: #667eea;">ranitmanikofficial@outlook.com</a>
+      Questions? Reach out to <strong>${inviterName}</strong> or our support team at <a href="mailto:tsjoker14311211@gmail.com" style="color: #667eea;">tsjoker14311211@gmail.com</a>
     </p>
   `;
 
