@@ -1,0 +1,12 @@
+node_modules
+.next
+dist
+.turbo
+.env
+*.log
+.git
+.gitignore
+Dockerfile
+.dockerignore
+README.md
+docs
