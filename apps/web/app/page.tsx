@@ -784,7 +784,7 @@ export default function LandingPage() {
             {/* Bottom Bar */}
             <div className="border-border/20 text-muted-foreground/50 flex flex-col items-center justify-between gap-6 border-t pt-12 font-mono text-[10px] font-bold tracking-[0.25em] uppercase md:flex-row">
               <div className="flex flex-wrap justify-center gap-x-6 gap-y-2 md:justify-start">
-                <span>© 2025 Lume Notes</span>
+                <span>© 2026 Lume Notes</span>
                 <span className="text-foreground/20">|</span>
                 <span>Built by 1xcoder</span>
               </div>
