@@ -142,6 +142,17 @@ export default function NotesDashboard() {
 }
 
 function NotesDashboardContent() {
+  const [mounted, setMounted] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+    setIsMobile(window.innerWidth < 768);
+    const handleResize = () => setIsMobile(window.innerWidth < 768);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -1184,7 +1195,7 @@ function NotesDashboardContent() {
         <motion.aside
           initial={false}
           animate={{
-            width: isSidebarOpen ? (window.innerWidth < 768 ? "100%" : 288) : 0,
+            width: isSidebarOpen ? (isMobile ? "100%" : 288) : 0,
             opacity: isSidebarOpen ? 1 : 0,
           }}
           transition={{

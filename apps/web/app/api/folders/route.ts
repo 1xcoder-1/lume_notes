@@ -27,7 +27,22 @@ export async function GET(request: NextRequest) {
       orderBy: { created_at: "asc" },
     });
 
-    return NextResponse.json(folders);
+    // Safe fetch for sharing data to bypass Prisma Client include issues
+    const foldersWithSharing = await Promise.all(
+      folders.map(async folder => {
+        try {
+          // @ts-ignore
+          const sharing = await (prisma as any).sharedFolder.findUnique({
+            where: { folder_id: folder.id },
+          });
+          return { ...folder, sharing };
+        } catch (e) {
+          return { ...folder, sharing: null };
+        }
+      })
+    );
+
+    return NextResponse.json(foldersWithSharing);
   } catch (error) {
     console.error("Get folders error:", error);
     return NextResponse.json(

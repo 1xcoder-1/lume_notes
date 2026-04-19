@@ -16,6 +16,7 @@ model Tenant {
   notes Note[]
   users User[]
   folders    Folder[]
+  audit_logs AuditLog[]
   members_can_edit   Boolean @default(true)
   members_can_create Boolean @default(true)
   members_can_share  Boolean @default(true)
@@ -32,6 +33,7 @@ model Folder {
   parent     Folder?  @relation("SubFolders", fields: [parentId], references: [id], onDelete: Cascade)
   children   Folder[] @relation("SubFolders")
   notes      Note[]
+  sharing SharedFolder? @relation("FolderSharing")
   created_at DateTime @default(now())
   updated_at DateTime @updatedAt
 
@@ -53,6 +55,7 @@ model User {
   accounts      Account[]
   notes         Note[]
   sessions      Session[]
+  audit_logs    AuditLog[]
   tenant        Tenant?   @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
 
   @@map("users")
@@ -77,6 +80,20 @@ model Note {
   history     NoteHistory[]
 
   @@map("notes")
+}
+
+model SharedFolder {
+  id          String    @id @default(cuid())
+  folder_id   String    @unique
+  token       String    @unique @default(cuid())
+  is_public   Boolean   @default(true)
+  expires_at  DateTime?
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+  view_count  Int       @default(0)
+  folder      Folder    @relation("FolderSharing", fields: [folder_id], references: [id], onDelete: Cascade)
+
+  @@map("shared_folders")
 }
 
 model NoteHistory {
@@ -151,4 +168,20 @@ enum Plan {
 enum Role {
   admin
   member
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  tenant_id   String
+  user_id     String
+  action      String   // e.g. "VIEW_NOTE", "UPDATE_NOTE", "DELETE_NOTE", "EXPORT_BACKUP"
+  entity_id   String?  // e.g. note id
+  entity_type String?  // e.g. "NOTE", "FOLDER"
+  details     String?  // JSON stringified extra context
+  created_at  DateTime @default(now())
+
+  tenant      Tenant   @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
+  user        User     @relation(fields: [user_id], references: [id], onDelete: Cascade)
+
+  @@map("audit_logs")
 }

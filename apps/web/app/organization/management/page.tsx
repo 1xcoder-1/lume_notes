@@ -19,6 +19,8 @@ import {
   ArrowRight,
   AlertTriangle,
   Lock,
+  History,
+  Activity,
 } from "lucide-react";
 import { Button } from "@workspace/ui/components/button";
 import {
@@ -114,7 +116,9 @@ export default function OrganizationManagementPage() {
   const [membersCanCreate, setMembersCanCreate] = useState(true);
   const [membersCanShare, setMembersCanShare] = useState(true);
   const [updatingSettings, setUpdatingSettings] = useState(false);
-  const initializedName = useRef(false);
+  const [auditLogs, setAuditLogs] = useState<any[]>([]);
+  const [loadingLogs, setLoadingLogs] = useState(false);
+  const [initializedName, setInitializedName] = useState(false);
 
   const inviteUserMutation = useInviteUser();
 
@@ -131,19 +135,38 @@ export default function OrganizationManagementPage() {
        but we will use 'isAdmin' to hide sensitive controls below.
     */
 
-    if (!initializedName.current) {
+    if (!initializedName) {
       if (stats?.name) {
         setNewOrgName(stats.name);
         setMembersCanEdit(stats.members_can_edit ?? true);
         setMembersCanCreate(stats.members_can_create ?? true);
         setMembersCanShare(stats.members_can_share ?? true);
-        initializedName.current = true;
+        setInitializedName(true);
       } else if (user?.tenantSlug) {
         setNewOrgName(user.tenantSlug);
-        initializedName.current = true;
+        setInitializedName(true);
       }
     }
-  }, [status, session, router, user?.role, user?.tenantSlug, stats]);
+
+    if (isAdmin && auditLogs.length === 0 && !loadingLogs) {
+      fetchAuditLogs();
+    }
+  }, [status, session, router, user?.role, user?.tenantSlug, stats, isAdmin]);
+
+  const fetchAuditLogs = async () => {
+    setLoadingLogs(true);
+    try {
+      const response = await fetch("/api/organization/audit-logs");
+      if (response.ok) {
+        const data = await response.json();
+        setAuditLogs(data);
+      }
+    } catch (error) {
+      console.error("Failed to fetch audit logs");
+    } finally {
+      setLoadingLogs(false);
+    }
+  };
 
   const handleInviteUser = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -451,6 +474,89 @@ export default function OrganizationManagementPage() {
             )}
           </CardContent>
         </Card>
+
+        {isAdmin && (
+          <Card className="border-border/50 bg-card/30 overflow-hidden backdrop-blur-sm">
+            <CardHeader className="border-border/50 bg-muted/20 border-b">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="flex items-center gap-2 text-xl">
+                    <History className="text-primary h-5 w-5" />
+                    Security Audit Logs
+                  </CardTitle>
+                  <CardDescription>
+                    Recent administrative and user actions within your
+                    organization.
+                  </CardDescription>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="text-xs"
+                  onClick={fetchAuditLogs}
+                  disabled={loadingLogs}
+                >
+                  {loadingLogs ? (
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                  ) : (
+                    <Activity className="mr-1 h-3 w-3" />
+                  )}
+                  Refresh
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="max-h-[400px] overflow-y-auto">
+                {loadingLogs && auditLogs.length === 0 ? (
+                  <div className="text-muted-foreground p-8 text-center">
+                    <Loader2 className="mx-auto mb-2 h-6 w-6 animate-spin opacity-50" />
+                    Loading security logs...
+                  </div>
+                ) : auditLogs.length === 0 ? (
+                  <div className="text-muted-foreground p-8 text-center text-sm italic">
+                    No security events recorded yet.
+                  </div>
+                ) : (
+                  <div className="divide-border/50 divide-y">
+                    {auditLogs.map(log => (
+                      <div
+                        key={log.id}
+                        className="hover:bg-muted/30 flex items-start gap-4 p-4 transition-colors"
+                      >
+                        <div className="bg-primary/10 mt-0.5 rounded-full p-2">
+                          <Activity className="text-primary h-3 w-3" />
+                        </div>
+                        <div className="flex-1 space-y-1">
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm font-bold tracking-tight">
+                              {log.action.replace("_", " ")}
+                            </span>
+                            <span className="text-muted-foreground font-mono text-[10px]">
+                              {new Date(log.created_at).toLocaleString()}
+                            </span>
+                          </div>
+                          <p className="text-muted-foreground text-xs">
+                            Performed by{" "}
+                            <span className="text-foreground font-medium">
+                              {log.user?.email}
+                            </span>
+                            {log.entity_type &&
+                              ` on ${log.entity_type.toLowerCase()}`}
+                          </p>
+                          {log.details && (
+                            <div className="bg-muted/50 text-muted-foreground mt-2 truncate overflow-hidden rounded p-1.5 font-mono text-[10px]">
+                              {log.details}
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       {}

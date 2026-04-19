@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo } from "react";
+import React, { useMemo, useState, useEffect } from "react";
 import { Button } from "@workspace/ui/components/button";
 import { Separator } from "@workspace/ui/components/separator";
 import { ScrollArea } from "@workspace/ui/components/scroll-area";
@@ -36,7 +36,15 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@workspace/ui/components/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@workspace/ui/components/select";
 import { Input } from "@workspace/ui/components/input";
+import { Label } from "@workspace/ui/components/label";
 import { cn } from "@workspace/ui/lib/utils";
 import { useTheme } from "next-themes";
 import {
@@ -66,6 +74,8 @@ import {
   ChevronDown,
   Check,
   PanelLeftClose,
+  Globe,
+  Link,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -74,6 +84,7 @@ import {
   useFolders,
   useCreateFolder,
   useDeleteFolder,
+  useToggleShareFolder,
   type Note,
   type Folder,
   Tenant,
@@ -184,7 +195,7 @@ function UserMenu({ user, tenant, onLogout, onUpgrade, onInviteUser }: any) {
               </span>
               <span className="truncate text-xs">
                 {user?.role === "admin" ? "Admin" : "Member"} •{" "}
-                {user?.tenantPlan === "pro" ? "Pro" : "Free"}
+                {tenant?.plan === "pro" ? "Pro" : "Free"}
               </span>
             </div>
           </div>
@@ -207,12 +218,21 @@ function UserMenu({ user, tenant, onLogout, onUpgrade, onInviteUser }: any) {
               </DropdownMenuItem>
             </>
           )}
-          {user?.tenantPlan !== "pro" && (
+          {tenant?.plan !== "pro" && (
             <DropdownMenuItem onClick={onUpgrade}>
               <Sparkles className="mr-2 h-4 w-4" />
               Upgrade to Pro
             </DropdownMenuItem>
           )}
+          <DropdownMenuItem
+            onClick={() => {
+              window.location.href = "/api/notes/backup";
+              toast.success("Backup started...");
+            }}
+          >
+            <Download className="mr-2 h-4 w-4" />
+            Backup Data (JSON)
+          </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
@@ -348,29 +368,6 @@ const SidebarNoteItem = React.memo(
                 {note.title || "Untitled"}
               </span>
             </div>
-
-            {note.tags && note.tags.length > 0 && (
-              <div className="flex flex-wrap gap-1 pl-5">
-                {note.tags.slice(0, 3).map(tag => (
-                  <span
-                    key={tag}
-                    className={cn(
-                      "rounded-full px-1.5 py-0.5 text-[7px] font-bold tracking-wider uppercase transition-colors",
-                      isSelected
-                        ? "bg-primary/15 text-primary"
-                        : "bg-muted/50 text-muted-foreground group-hover:bg-muted"
-                    )}
-                  >
-                    {tag}
-                  </span>
-                ))}
-                {note.tags.length > 3 && (
-                  <span className="text-muted-foreground/50 self-center text-[7px] font-medium">
-                    +{note.tags.length - 3}
-                  </span>
-                )}
-              </div>
-            )}
           </div>
 
           <div className="flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
@@ -428,6 +425,7 @@ interface SidebarFolderItemProps {
   shareRestricted?: boolean;
   onAddSubfolder: (id: string, name: string) => void;
   onDeleteFolder: (e: React.MouseEvent, id: string, name: string) => void;
+  onShareFolder: (folder: any) => void;
   updateNoteMutation: any;
   setExpandedFolders: React.Dispatch<
     React.SetStateAction<Record<string, boolean>>
@@ -454,6 +452,7 @@ const SidebarFolderItem = React.memo(
     shareRestricted,
     onAddSubfolder,
     onDeleteFolder,
+    onShareFolder,
     updateNoteMutation,
     setExpandedFolders,
     ancestorIds,
@@ -542,7 +541,7 @@ const SidebarFolderItem = React.memo(
                 {folder.name}
               </span>
               {currentFolderNotes.length > 0 && !isExpanded && (
-                <span className="bg-primary/10 text-primary rounded-full px-1.5 py-0.5 text-[8px] leading-none font-bold opacity-60">
+                <span className="bg-primary dark:text-background animate-in fade-in zoom-in rounded-md px-1.5 py-0.5 text-[8px] leading-none font-black tracking-tighter text-white shadow-sm transition-all duration-300">
                   {currentFolderNotes.length}
                 </span>
               )}
@@ -564,6 +563,19 @@ const SidebarFolderItem = React.memo(
               title={createRestricted ? "Restricted" : "New Sub-folder"}
             >
               <Plus className="text-muted-foreground/70 size-3.5" />
+            </button>
+            <button
+              onClick={e => {
+                e.stopPropagation();
+                onShareFolder(folder);
+              }}
+              className={cn(
+                "hover:bg-accent/80 rounded-md p-1 transition-colors",
+                folder.sharing ? "text-primary" : "text-muted-foreground/70"
+              )}
+              title={folder.sharing ? "Folder is Shared" : "Share Portfolio"}
+            >
+              <Globe className="size-3.5" />
             </button>
             <button
               onClick={e => {
@@ -605,6 +617,7 @@ const SidebarFolderItem = React.memo(
                 shareRestricted={shareRestricted}
                 onAddSubfolder={onAddSubfolder}
                 onDeleteFolder={onDeleteFolder}
+                onShareFolder={onShareFolder}
                 updateNoteMutation={updateNoteMutation}
                 setExpandedFolders={setExpandedFolders}
                 ancestorIds={newAncestorIds}
@@ -638,6 +651,14 @@ const SidebarFolderItem = React.memo(
     );
   }
 );
+
+const expiryOptions = [
+  { value: "never", label: "Never expires" },
+  { value: "1h", label: "1 hour" },
+  { value: "24h", label: "24 hours" },
+  { value: "7d", label: "7 days" },
+  { value: "30d", label: "30 days" },
+];
 
 export const SidebarContent = React.memo(function SidebarContent({
   notes,
@@ -691,6 +712,12 @@ export const SidebarContent = React.memo(function SidebarContent({
     string | null
   >(null);
   const [newSubfolderName, setNewSubfolderName] = React.useState("");
+  const toggleShareFolderMutation = useToggleShareFolder();
+  const [sharingFolderId, setSharingFolderId] = useState<string | null>(null);
+  const sharingFolder =
+    foldersData?.find((f: any) => f.id === sharingFolderId) || null;
+  const [copied, setCopied] = useState(false);
+  const [folderExpiresIn, setFolderExpiresIn] = useState("never");
 
   const createRestricted = user?.role !== "admin" && !tenant.members_can_create;
   const editRestricted = user?.role !== "admin" && !tenant.members_can_edit;
@@ -858,6 +885,7 @@ export const SidebarContent = React.memo(function SidebarContent({
                   shareRestricted={shareRestricted}
                   onAddSubfolder={onAddSubfolder}
                   onDeleteFolder={handleDeleteFolder}
+                  onShareFolder={(f: Folder) => setSharingFolderId(f.id)}
                   updateNoteMutation={updateNoteMutation}
                   setExpandedFolders={setExpandedFolders}
                   ancestorIds={[]}
@@ -1197,39 +1225,31 @@ export const SidebarContent = React.memo(function SidebarContent({
 
       <AlertDialog
         open={!!deleteFolderId}
-        onOpenChange={() => setDeleteFolderId(null)}
+        onOpenChange={open => !open && setDeleteFolderId(null)}
       >
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Delete Folder</AlertDialogTitle>
+            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
             <AlertDialogDescription>
-              Are you sure you want to delete the folder "{deleteFolderName}"?
-              This will <strong>permanently delete all notes</strong> inside
-              this folder. This action cannot be undone.
+              This will permanently delete the folder "{deleteFolderName}" and
+              all its contents. This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={deleteFolderMutation.isPending}>
-              Cancel
-            </AlertDialogCancel>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction
-              className="bg-destructive hover:bg-destructive/90"
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
               onClick={onConfirmDeleteFolder}
               disabled={deleteFolderMutation.isPending}
             >
-              {deleteFolderMutation.isPending ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Deleting...
-                </>
-              ) : (
-                "Delete Folder & Notes"
+              {deleteFolderMutation.isPending && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               )}
+              Delete Folder
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-
       <Dialog
         open={isCreatingSubfolder}
         onOpenChange={open => {
@@ -1308,6 +1328,182 @@ export const SidebarContent = React.memo(function SidebarContent({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      <Dialog
+        open={!!sharingFolderId}
+        onOpenChange={open => {
+          if (!open) {
+            setSharingFolderId(null);
+            setFolderExpiresIn("never");
+          }
+        }}
+      >
+        <DialogContent
+          className={cn(
+            "transition-all duration-500 ease-in-out",
+            sharingFolder?.sharing ? "sm:max-w-[600px]" : "sm:max-w-md"
+          )}
+        >
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Globe className="text-primary h-5 w-5" />
+              Publish Folder as Portfolio
+            </DialogTitle>
+            <DialogDescription>
+              Share your "{sharingFolder?.name}" folder as a professional public
+              portfolio or blog.
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-4 py-4">
+            {sharingFolder?.sharing ? (
+              <>
+                <div className="space-y-2">
+                  <Label className="text-muted-foreground text-xs font-semibold tracking-wider uppercase">
+                    Public Portfolio URL
+                  </Label>
+                  <div className="flex items-center gap-2">
+                    <div className="bg-muted flex min-w-0 flex-1 items-center gap-2 rounded-md border px-3 py-2">
+                      <Globe className="text-muted-foreground h-4 w-4 shrink-0" />
+                      <div className="line-clamp-1 max-w-full truncate text-sm">
+                        {typeof window !== "undefined"
+                          ? `${window.location.origin}/s/f/${sharingFolder.sharing.token}`
+                          : ""}
+                      </div>
+                    </div>
+                    <Button
+                      size="icon"
+                      variant="outline"
+                      onClick={() => {
+                        if (sharingFolder?.sharing) {
+                          const url = `${window.location.origin}/s/f/${sharingFolder.sharing.token}`;
+                          navigator.clipboard.writeText(url);
+                          setCopied(true);
+                          toast.success("Link copied to clipboard");
+                          setTimeout(() => setCopied(false), 2000);
+                        }
+                      }}
+                    >
+                      {copied ? (
+                        <Check className="h-4 w-4 text-green-500" />
+                      ) : (
+                        <CopyIcon className="h-4 w-4" />
+                      )}
+                    </Button>
+                    <Button size="icon" variant="outline" asChild>
+                      <a
+                        href={`/s/f/${sharingFolder.sharing.token}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        <ExternalLink className="h-4 w-4" />
+                      </a>
+                    </Button>
+                  </div>
+                </div>
+
+                {sharingFolder.sharing.expires_at && (
+                  <div className="flex items-center gap-2">
+                    <Badge variant="secondary" className="font-normal">
+                      Expires{" "}
+                      {new Date(
+                        sharingFolder.sharing.expires_at
+                      ).toLocaleDateString()}
+                    </Badge>
+                  </div>
+                )}
+
+                <div className="bg-primary/5 border-primary/10 text-primary flex items-center gap-2 rounded-lg border p-3 text-[11px]">
+                  <Sparkles className="h-3 w-3 shrink-0" />
+                  <span>
+                    All notes within this folder are automatically added to your
+                    portfolio!
+                  </span>
+                </div>
+
+                <div className="border-t pt-4">
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    className="w-full"
+                    onClick={() => {
+                      if (sharingFolder) {
+                        toggleShareFolderMutation.mutate({
+                          id: sharingFolder.id,
+                          enabled: false,
+                        });
+                      }
+                    }}
+                    disabled={toggleShareFolderMutation.isPending}
+                  >
+                    {toggleShareFolderMutation.isPending ? (
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    ) : (
+                      <Trash2 className="mr-2 h-4 w-4" />
+                    )}
+                    Unpublish & Stop Sharing
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <div className="space-y-4">
+                <div className="bg-muted/50 rounded-lg p-6 text-center">
+                  <Globe className="text-muted-foreground mx-auto mb-3 h-10 w-10 opacity-50" />
+                  <p className="text-sm font-medium">
+                    Ready to showcase your work?
+                  </p>
+                  <p className="text-muted-foreground mt-1 text-xs">
+                    This folder is private. Publish it to create a public
+                    portfolio.
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="folderExpiresIn">Link Expiration</Label>
+                  <Select
+                    value={folderExpiresIn}
+                    onValueChange={setFolderExpiresIn}
+                  >
+                    <SelectTrigger id="folderExpiresIn" className="w-full">
+                      <SelectValue placeholder="Select expiration" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {expiryOptions.map(option => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <Button
+                  className="w-full"
+                  onClick={() => {
+                    if (sharingFolder) {
+                      toggleShareFolderMutation.mutate({
+                        id: sharingFolder.id,
+                        enabled: true,
+                        expires_in:
+                          folderExpiresIn === "never"
+                            ? undefined
+                            : folderExpiresIn,
+                      });
+                    }
+                  }}
+                  disabled={toggleShareFolderMutation.isPending}
+                >
+                  {toggleShareFolderMutation.isPending ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Globe className="mr-2 h-4 w-4" />
+                  )}
+                  Publish Portfolio
+                </Button>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 });

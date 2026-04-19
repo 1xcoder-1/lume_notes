@@ -1,4 +1,5 @@
 import { PrismaClient } from "@prisma/client";
+// Refreshed client instance to pick up schema changes
 import { PrismaPg } from "@prisma/adapter-pg";
 import pg from "pg";
 
@@ -12,6 +13,11 @@ const pool = new pg.Pool({
 
 const adapter = new PrismaPg(pool);
 
-export const prisma = globalForPrisma.prisma ?? new PrismaClient({ adapter });
+export const prisma = new PrismaClient({ adapter });
 
-if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+if (process.env.NODE_ENV !== "production") {
+  const models = Object.keys(prisma).filter(
+    k => !k.startsWith("_") && !k.startsWith("$")
+  );
+  console.log("Prisma Models Initialized:", models.join(", "));
+}

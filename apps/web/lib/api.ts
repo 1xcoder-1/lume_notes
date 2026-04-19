@@ -29,6 +29,13 @@ export interface Folder {
   parentId?: string | null;
   created_at: string;
   updated_at: string;
+  sharing?: {
+    id: string;
+    token: string;
+    is_public: boolean;
+    expires_at?: string | null;
+    view_count: number;
+  } | null;
 }
 
 export interface Tenant {
@@ -68,37 +75,41 @@ const getAuthHeaders = (): Record<string, string> => {
 };
 
 const handleApiError = async (error: any) => {
-  if (error.status === 401) {
+  let message = "An unexpected error occurred";
+
+  if (error instanceof Response) {
     try {
-      const clonedError = error.clone();
-      const data = await clonedError.json();
-      if (
-        data.error === "User account no longer exists. Please sign in again."
-      ) {
-        await signOut({ callbackUrl: "/auth/login" });
-        return;
-      }
+      const cloned = error.clone();
+      const data = await cloned.json();
+      message = data.error || data.message || message;
     } catch (e) {
       // Ignore JSON parsing errors
     }
-    window.location.href = "/auth/login";
-    return;
-  }
-  if (error.status === 403 || error.status === 404) {
-    try {
-      const clonedError = error.clone();
-      const data = await clonedError.json();
+
+    if (error.status === 401) {
+      if (message === "User account no longer exists. Please sign in again.") {
+        await signOut({ callbackUrl: "/auth/login" });
+        return;
+      }
+      window.location.href = "/auth/login";
+      return;
+    }
+
+    if (error.status === 403 || error.status === 404) {
       if (
-        data.error === "Tenant not found or access revoked" ||
-        data.error === "Tenant not found"
+        message === "Tenant not found or access revoked" ||
+        message === "Tenant not found"
       ) {
         window.location.href = "/organization/setup?refresh=true";
         return;
       }
-    } catch (e) {
-      // Ignore JSON parsing errors
     }
+
+    const err = new Error(message);
+    (err as any).status = error.status;
+    throw err;
   }
+
   throw error;
 };
 
@@ -107,7 +118,7 @@ export const api = {
     const response = await fetch(`/api/notes`, {
       headers: getAuthHeaders(),
     });
-    if (!response.ok) handleApiError(response);
+    if (!response.ok) await handleApiError(response);
     return response.json();
   },
 
@@ -115,7 +126,7 @@ export const api = {
     const response = await fetch(`/api/notes/${id}`, {
       headers: getAuthHeaders(),
     });
-    if (!response.ok) handleApiError(response);
+    if (!response.ok) await handleApiError(response);
     return response.json();
   },
 
@@ -130,7 +141,7 @@ export const api = {
       headers: getAuthHeaders(),
       body: JSON.stringify(data),
     });
-    if (!response.ok) handleApiError(response);
+    if (!response.ok) await handleApiError(response);
     return response.json();
   },
 
@@ -149,7 +160,7 @@ export const api = {
       headers: getAuthHeaders(),
       body: JSON.stringify(data),
     });
-    if (!response.ok) handleApiError(response);
+    if (!response.ok) await handleApiError(response);
     return response.json();
   },
 
@@ -158,14 +169,14 @@ export const api = {
       method: "DELETE",
       headers: getAuthHeaders(),
     });
-    if (!response.ok) handleApiError(response);
+    if (!response.ok) await handleApiError(response);
   },
 
   getTenant: async (): Promise<Tenant> => {
     const response = await fetch(`/api/tenant`, {
       headers: getAuthHeaders(),
     });
-    if (!response.ok) handleApiError(response);
+    if (!response.ok) await handleApiError(response);
     return response.json();
   },
 
@@ -173,7 +184,7 @@ export const api = {
     const response = await fetch(`/api/organization/users`, {
       headers: getAuthHeaders(),
     });
-    if (!response.ok) handleApiError(response);
+    if (!response.ok) await handleApiError(response);
     return response.json();
   },
 
@@ -182,7 +193,7 @@ export const api = {
       method: "DELETE",
       headers: getAuthHeaders(),
     });
-    if (!response.ok) handleApiError(response);
+    if (!response.ok) await handleApiError(response);
   },
 
   getOrganizationStats: async (): Promise<{
@@ -194,7 +205,7 @@ export const api = {
     const response = await fetch(`/api/organization/stats`, {
       headers: getAuthHeaders(),
     });
-    if (!response.ok) handleApiError(response);
+    if (!response.ok) await handleApiError(response);
     return response.json();
   },
 
@@ -205,7 +216,7 @@ export const api = {
       method: "POST",
       headers: getAuthHeaders(),
     });
-    if (!response.ok) handleApiError(response);
+    if (!response.ok) await handleApiError(response);
     return response.json();
   },
 
@@ -219,7 +230,7 @@ export const api = {
       headers: getAuthHeaders(),
       body: JSON.stringify(data),
     });
-    if (!response.ok) handleApiError(response);
+    if (!response.ok) await handleApiError(response);
     return response.json();
   },
 
@@ -253,7 +264,7 @@ export const api = {
         headers: getAuthHeaders(),
       }
     );
-    if (!response.ok) handleApiError(response);
+    if (!response.ok) await handleApiError(response);
     return response.json();
   },
 
@@ -266,7 +277,21 @@ export const api = {
       headers: getAuthHeaders(),
       body: JSON.stringify({ enabled }),
     });
-    if (!response.ok) handleApiError(response);
+    if (!response.ok) await handleApiError(response);
+    return response.json();
+  },
+
+  toggleShareFolder: async (
+    id: string,
+    enabled: boolean,
+    expires_in?: string
+  ): Promise<any> => {
+    const response = await fetch(`/api/folders/${id}/share`, {
+      method: enabled ? "POST" : "DELETE",
+      headers: getAuthHeaders(),
+      body: enabled ? JSON.stringify({ expires_in }) : undefined,
+    });
+    if (!response.ok) await handleApiError(response);
     return response.json();
   },
 
@@ -274,7 +299,7 @@ export const api = {
     const response = await fetch(`/api/folders`, {
       headers: getAuthHeaders(),
     });
-    if (!response.ok) handleApiError(response);
+    if (!response.ok) await handleApiError(response);
     return response.json();
   },
 
@@ -287,7 +312,7 @@ export const api = {
       headers: getAuthHeaders(),
       body: JSON.stringify(data),
     });
-    if (!response.ok) handleApiError(response);
+    if (!response.ok) await handleApiError(response);
     return response.json();
   },
 
@@ -296,7 +321,7 @@ export const api = {
       method: "DELETE",
       headers: getAuthHeaders(),
     });
-    if (!response.ok) handleApiError(response);
+    if (!response.ok) await handleApiError(response);
   },
 };
 
@@ -691,6 +716,36 @@ export const useToggleShare = (): UseMutationResult<
     },
     onError: () => {
       toast.error("Failed to update sharing settings");
+    },
+  });
+};
+
+export const useToggleShareFolder = (): UseMutationResult<
+  any,
+  Error,
+  { id: string; enabled: boolean; expires_in?: string }
+> => {
+  const queryClient = useQueryClient();
+  return useMutation<
+    any,
+    Error,
+    { id: string; enabled: boolean; expires_in?: string }
+  >({
+    mutationFn: ({
+      id,
+      enabled,
+      expires_in,
+    }: {
+      id: string;
+      enabled: boolean;
+      expires_in?: string;
+    }) => api.toggleShareFolder(id, enabled, expires_in),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["folders"] });
+      toast.success("Folder sharing updated");
+    },
+    onError: () => {
+      toast.error("Failed to update folder sharing");
     },
   });
 };

@@ -106,38 +106,52 @@ export async function PUT(
     }
 
     const updatedNote = await prisma.$transaction(async tx => {
-      // 1. Check if content or title actually changed
       const contentChanged =
         content !== undefined &&
         JSON.stringify(content) !== JSON.stringify(note.content);
       const titleChanged = title !== undefined && title !== note.title;
 
       if (contentChanged || titleChanged) {
-        // 2. Check if we should create a new history entry or skip (throttling)
         // Find the most recent history entry for this note
         const lastHistory = await tx.noteHistory.findFirst({
           where: { note_id: id },
           orderBy: { created_at: "desc" },
         });
 
-        const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000);
-        const isRecent =
-          lastHistory && new Date(lastHistory.created_at) > twoMinutesAgo;
+        const newTitle = title !== undefined ? title : note.title;
+        const newContent = content !== undefined ? content : note.content;
 
-        if (!isRecent) {
-          // Only create history entry if the last one isn't too recent
-          console.log(`[DEBUG] Creating new history entry for note: ${id}`);
-          await tx.noteHistory.create({
-            data: {
-              note_id: id,
-              title: note.title,
-              content: note.content as any,
-            },
+        // Check if we are reverting to the exact state of the last history entry
+        const isReverting =
+          lastHistory &&
+          JSON.stringify(newContent) === JSON.stringify(lastHistory.content) &&
+          newTitle === lastHistory.title;
+
+        if (isReverting) {
+          // If reverting to the previous version, delete that history entry
+          // to keep the history clean (as if the change never happened)
+          await tx.noteHistory.delete({
+            where: { id: lastHistory.id },
           });
-        } else {
           console.log(
-            `[DEBUG] Skipping history entry (too recent) for note: ${id}`
+            `[DEBUG] Reverted to last version, cleaned up history entry for note: ${id}`
           );
+        } else {
+          // Normal history creation with throttling
+          const twoMinutesAgo = new Date(Date.now() - 2 * 60 * 1000);
+          const isRecent =
+            lastHistory && new Date(lastHistory.created_at) > twoMinutesAgo;
+
+          if (!isRecent) {
+            await tx.noteHistory.create({
+              data: {
+                note_id: id,
+                title: note.title,
+                content: note.content as any,
+              },
+            });
+            console.log(`[DEBUG] Created new history entry for note: ${id}`);
+          }
         }
       }
 
