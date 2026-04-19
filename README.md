@@ -1,3 +1,5 @@
+<img width="70" src="https://raw.githubusercontent.com/1xcoder-1/lume_notes/refs/heads/main/apps/web/public/logo.svg" alt="Lume Notes Logo" />
+
 # Lume Notes
 
 A modern, full-stack notes app for organizations. Built with real-time collaboration, AI features, and secure multi-tenancy.
@@ -17,7 +19,7 @@ A modern, full-stack notes app for organizations. Built with real-time collabora
 
 ```bash
 git clone https://github.com/1xcoder-1/lume_notes.git
-cd lucide-note
+cd lume_notes
 pnpm install
 ```
 
@@ -85,5 +87,9 @@ Detailed guides for all major features:
 - **Testing**: Jest, Playwright.
 
 ---
+
+## 📄 License
+
+MIT — Build something great!
 
 <div align="center">Built for creators and teams.</div>

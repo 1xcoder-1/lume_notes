@@ -87,3 +87,8 @@ Notion's `/` command is the "magic wand." We should expand ours:
 
 > [!IMPORTANT]
 > **Aesthetic matters:** Keeping the UI clean while adding these complex features is what separates professional apps from cluttered ones.
+
+
+
+
+
