@@ -65,6 +65,7 @@ import {
   ChevronRight,
   ChevronDown,
   Check,
+  PanelLeftClose,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
@@ -106,6 +107,7 @@ interface SidebarContentProps {
   onPDFUpload?: (file: File) => void;
   onSelectFolder?: (folderId: string | null) => void;
   selectedFolderId?: string | null;
+  onToggleSidebar?: () => void;
 }
 
 function UpgradeBanner({ onUpgrade }: { onUpgrade: () => void }) {
@@ -319,40 +321,69 @@ const SidebarNoteItem = React.memo(
         role="button"
         tabIndex={0}
         className={cn(
-          "hover:bg-accent/70 group w-full cursor-pointer rounded-md border-l-2 border-transparent px-3 py-1.5 text-left text-xs transition-colors select-none focus-visible:outline-2 focus-visible:-outline-offset-2",
-          isSelected &&
-            "bg-accent/80 text-foreground border-primary pl-3 font-medium"
+          "group relative w-full cursor-pointer rounded-lg border border-transparent px-2.5 py-1.5 text-left transition-all duration-200 select-none",
+          "hover:bg-accent/40 hover:border-border/40 hover:shadow-sm",
+          isSelected
+            ? "bg-primary/5 border-primary/20 ring-primary/10 shadow-sm ring-1"
+            : "text-muted-foreground/90"
         )}
         onClick={() => onSelect(note.id)}
         aria-current={isSelected ? "page" : undefined}
       >
-        <div className="grid grid-cols-[1fr_auto] items-center gap-2">
-          <div className="flex min-w-0 flex-col">
-            <span className="truncate">{note.title || "Untitled"}</span>
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex min-w-0 flex-col gap-1">
+            <div className="flex min-w-0 items-center gap-2">
+              <FileText
+                className={cn(
+                  "size-3 shrink-0",
+                  isSelected ? "text-primary" : "text-muted-foreground/60"
+                )}
+              />
+              <span
+                className={cn(
+                  "truncate text-[12.5px] tracking-tight whitespace-nowrap",
+                  isSelected ? "text-foreground font-semibold" : "font-medium"
+                )}
+              >
+                {note.title || "Untitled"}
+              </span>
+            </div>
+
             {note.tags && note.tags.length > 0 && (
-              <div className="mt-0.5 flex flex-wrap gap-1">
-                {note.tags.slice(0, 2).map(tag => (
+              <div className="flex flex-wrap gap-1 pl-5">
+                {note.tags.slice(0, 3).map(tag => (
                   <span
                     key={tag}
-                    className="text-primary bg-primary/10 border-primary/20 rounded-sm border px-1.5 py-0.5 text-[8px] leading-none font-medium"
+                    className={cn(
+                      "rounded-full px-1.5 py-0.5 text-[7px] font-bold tracking-wider uppercase transition-colors",
+                      isSelected
+                        ? "bg-primary/15 text-primary"
+                        : "bg-muted/50 text-muted-foreground group-hover:bg-muted"
+                    )}
                   >
                     {tag}
                   </span>
                 ))}
+                {note.tags.length > 3 && (
+                  <span className="text-muted-foreground/50 self-center text-[7px] font-medium">
+                    +{note.tags.length - 3}
+                  </span>
+                )}
               </div>
             )}
           </div>
-          <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+
+          <div className="flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
             {!shareRestricted && (
               <button
                 onClick={e => {
                   e.stopPropagation();
                   onShare(note);
                 }}
-                className="hover:bg-background rounded-md p-1"
+                className="hover:bg-accent/80 rounded-md p-1"
                 title="Share"
               >
-                <Share2 className="text-muted-foreground size-3" />
+                <Share2 className="text-muted-foreground/70 size-3.5" />
               </button>
             )}
             {!editRestricted && (
@@ -361,14 +392,14 @@ const SidebarNoteItem = React.memo(
                   e.stopPropagation();
                   onDelete(note.id);
                 }}
-                className="hover:bg-background text-destructive rounded-md p-1"
+                className="hover:bg-destructive/10 text-destructive/70 hover:text-destructive rounded-md p-1"
                 title="Delete"
                 disabled={isDeletePending}
               >
                 {isDeletePending ? (
-                  <div className="size-3 animate-spin rounded-full border border-current border-t-transparent" />
+                  <Loader2 className="size-3.5 animate-spin" />
                 ) : (
-                  <Trash2 className="size-3" />
+                  <Trash2 className="size-3.5" />
                 )}
               </button>
             )}
@@ -452,8 +483,10 @@ const SidebarFolderItem = React.memo(
       <div className="space-y-0.5">
         <div
           className={cn(
-            "group relative flex w-full cursor-pointer items-center gap-2 rounded-md px-2 py-1.5 transition-colors select-none focus-visible:outline-2",
-            isExpanded ? "bg-accent/40" : "hover:bg-accent/50"
+            "group relative flex w-full cursor-pointer items-center gap-2 rounded-lg px-2 py-1.5 transition-all duration-200 select-none focus-visible:outline-2",
+            isExpanded
+              ? "bg-accent/30 shadow-xs"
+              : "hover:bg-accent/50 hover:shadow-xs"
           )}
           style={{ paddingLeft: `${depth * 12 + 8}px` }}
           onClick={() => toggleFolder(folder.id)}
@@ -484,9 +517,9 @@ const SidebarFolderItem = React.memo(
           <div className="flex min-w-0 flex-1 items-center gap-1.5">
             <div className="relative flex size-4 items-center justify-center">
               {isExpanded ? (
-                <ChevronDown className="text-muted-foreground size-3 transition-transform" />
+                <ChevronDown className="text-muted-foreground/60 size-3 transition-transform" />
               ) : (
-                <ChevronRight className="text-muted-foreground group-hover:text-primary size-3 transition-transform" />
+                <ChevronRight className="text-muted-foreground/40 group-hover:text-primary size-3 transition-transform" />
               )}
             </div>
             <div className="flex min-w-0 items-center gap-2">
@@ -495,19 +528,23 @@ const SidebarFolderItem = React.memo(
                   "size-3.5",
                   isExpanded
                     ? "text-primary"
-                    : "text-muted-foreground/70 group-hover:text-primary"
+                    : "text-muted-foreground/60 group-hover:text-primary"
                 )}
               />
-              <span className="truncate overflow-hidden text-xs font-medium tracking-tight whitespace-nowrap">
+              <span
+                className={cn(
+                  "truncate overflow-hidden text-[12.5px] tracking-tight whitespace-nowrap",
+                  isExpanded
+                    ? "text-foreground font-semibold"
+                    : "text-muted-foreground/90 font-medium"
+                )}
+              >
                 {folder.name}
               </span>
               {currentFolderNotes.length > 0 && !isExpanded && (
-                <Badge
-                  variant="secondary"
-                  className="h-4 min-w-4 px-1 text-[8px] opacity-40"
-                >
+                <span className="bg-primary/10 text-primary rounded-full px-1.5 py-0.5 text-[8px] leading-none font-bold opacity-60">
                   {currentFolderNotes.length}
-                </Badge>
+                </span>
               )}
             </div>
           </div>
@@ -523,10 +560,10 @@ const SidebarFolderItem = React.memo(
                 onAddSubfolder(folder.id, folder.name);
               }}
               disabled={createRestricted}
-              className="hover:bg-background rounded-md p-1 disabled:opacity-30"
+              className="hover:bg-accent/80 rounded-md p-1 disabled:opacity-30"
               title={createRestricted ? "Restricted" : "New Sub-folder"}
             >
-              <Plus className="text-muted-foreground size-3" />
+              <Plus className="text-muted-foreground/70 size-3.5" />
             </button>
             <button
               onClick={e => {
@@ -538,10 +575,10 @@ const SidebarFolderItem = React.memo(
                 onDeleteFolder(e, folder.id, folder.name);
               }}
               disabled={createRestricted}
-              className="hover:bg-background text-destructive rounded-md p-1 disabled:opacity-30"
+              className="hover:bg-destructive/10 text-destructive/70 hover:text-destructive rounded-md p-1 disabled:opacity-30"
               title={createRestricted ? "Restricted" : "Delete Folder"}
             >
-              <Trash2 className="size-3" />
+              <Trash2 className="size-3.5" />
             </button>
           </div>
         </div>
@@ -626,6 +663,7 @@ export const SidebarContent = React.memo(function SidebarContent({
   onPDFUpload,
   onSelectFolder,
   selectedFolderId,
+  onToggleSidebar,
 }: SidebarContentProps) {
   const [selectedTag, setSelectedTag] = React.useState<string | null>(null);
   const isLoading = tenantLoading || notesLoading;
@@ -799,58 +837,7 @@ export const SidebarContent = React.memo(function SidebarContent({
           </div>
         ) : (
           <>
-            <div className="space-y-1">
-              {/* Main Workspace Drop Target */}
-              <div
-                className={cn(
-                  "group text-muted-foreground hover:text-foreground hover:bg-accent/40 relative flex w-full cursor-pointer items-center gap-2 rounded-md border border-transparent px-2 py-1.5 transition-all select-none",
-                  "drag-target-root"
-                )}
-                onDragOver={e => {
-                  e.preventDefault();
-                  e.currentTarget.classList.add(
-                    "bg-primary/10",
-                    "border-primary/20",
-                    "text-primary"
-                  );
-                }}
-                onDragLeave={e => {
-                  e.currentTarget.classList.remove(
-                    "bg-primary/10",
-                    "border-primary/20",
-                    "text-primary"
-                  );
-                }}
-                onDrop={async e => {
-                  e.currentTarget.classList.remove(
-                    "bg-primary/10",
-                    "border-primary/20",
-                    "text-primary"
-                  );
-                  const noteId = e.dataTransfer.getData("noteId");
-                  if (noteId && !editRestricted) {
-                    try {
-                      await updateNoteMutation.mutateAsync({
-                        id: noteId,
-                        data: { folderId: null, folder: null },
-                      });
-                      toast.success("Note moved to Main Library");
-                    } catch (err) {
-                      toast.error("Failed to move note");
-                    }
-                  }
-                }}
-              >
-                <div className="flex min-w-0 flex-1 items-center gap-2">
-                  <div className="flex size-4 items-center justify-center">
-                    <FileText className="size-3.5" />
-                  </div>
-                  <span className="truncate text-xs font-semibold tracking-wider uppercase opacity-70">
-                    Main Library
-                  </span>
-                </div>
-              </div>
-
+            <div className="space-y-0.5">
               {folderTree.map(f => (
                 <SidebarFolderItem
                   key={f.id}
@@ -879,7 +866,7 @@ export const SidebarContent = React.memo(function SidebarContent({
             </div>
 
             <div
-              className="min-h-[40px] space-y-0.5 pt-2"
+              className="min-h-[40px] space-y-0.5 pt-0"
               onDragOver={e => {
                 e.preventDefault();
                 e.currentTarget.classList.add("bg-primary/5");
@@ -952,8 +939,8 @@ export const SidebarContent = React.memo(function SidebarContent({
 
   if (isLoading) {
     return (
-      <>
-        <div className="min-w-0 px-3 py-2">
+      <div className="flex h-full flex-col">
+        <div className="min-w-0 shrink-0 px-3 py-2">
           <div className="flex items-center justify-between">
             <div className="flex h-8 items-center gap-2">
               <Skeleton className="h-6 w-6" />
@@ -977,37 +964,46 @@ export const SidebarContent = React.memo(function SidebarContent({
           <Skeleton className="h-10 w-full" />
         </div>
 
-        <div className="border-t p-3">
+        <div className="mt-auto shrink-0 border-t p-3">
           <Skeleton className="h-10 w-full" />
         </div>
-      </>
+      </div>
     );
   }
 
   return (
-    <>
-      <div className="min-w-0 px-3 py-2">
+    <div className="flex h-full flex-col">
+      <div className="min-w-0 shrink-0 px-3 py-2">
         <div className="flex items-center justify-between">
-          <div>
-            <div className="flex h-8 items-center gap-2">
-              <img src="/logo.svg" alt="lume notes Logo" className="h-6 w-6" />
-              <span className="text-lg font-semibold">lume notes</span>
-              <Badge
-                variant="secondary"
-                className="px-1.5 py-0.5 text-xs font-medium"
-              >
-                {tenant?.plan?.toLowerCase() === "free" ? "Free" : "Pro"}
-              </Badge>
-            </div>
+          <div className="flex items-center gap-2">
+            <img src="/logo.svg" alt="lume notes Logo" className="h-6 w-6" />
+            <span className="text-lg font-semibold">lume notes</span>
+            <Badge
+              variant="secondary"
+              className="px-1.5 py-0.5 text-xs font-medium"
+            >
+              {tenant?.plan?.toLowerCase() === "free" ? "Free" : "Pro"}
+            </Badge>
           </div>
+          {onToggleSidebar && (
+            <Button
+              variant="ghost"
+              size="icon"
+              className="text-muted-foreground hover:bg-accent hidden size-7 md:flex"
+              onClick={onToggleSidebar}
+              title="Collapse Sidebar"
+            >
+              <PanelLeftClose className="size-4" />
+            </Button>
+          )}
         </div>
       </div>
 
-      <Separator className="mb-4" />
-      <div className="mb-4 px-2">
+      <Separator className="mb-4 shrink-0" />
+      <div className="mb-4 shrink-0 px-2">
         <SearchBar onSelectNote={onSelectNote} />
       </div>
-      <div className="flex flex-col gap-2 px-2">
+      <div className="flex shrink-0 flex-col gap-2 px-2">
         <Button
           size="sm"
           onClick={onCreateNote}
@@ -1043,13 +1039,13 @@ export const SidebarContent = React.memo(function SidebarContent({
           >
             <div className="flex items-center gap-2">
               <FileText className="text-muted-foreground/70 group-hover:text-primary size-3.5 transition-colors" />
-              <span className="truncate">Chat / Import File</span>
+              <span className="truncate">Chat with PDF / Import</span>
             </div>
             <ChevronRight className="size-3.5 opacity-40 transition-opacity group-hover:opacity-100" />
           </Button>
         </div>
       </div>
-      <div className="mb-4 px-3">
+      <div className="mb-4 shrink-0 px-3">
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
@@ -1133,9 +1129,9 @@ export const SidebarContent = React.memo(function SidebarContent({
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-      <Separator className="my-2" />
+      <Separator className="my-2 shrink-0" />
 
-      <div className="mb-2 flex items-center justify-between px-3">
+      <div className="mb-2 flex shrink-0 items-center justify-between px-3">
         <p className="text-muted-foreground text-[10px] font-bold tracking-wider uppercase">
           Explorer
         </p>
@@ -1189,7 +1185,7 @@ export const SidebarContent = React.memo(function SidebarContent({
       {limitReached && user?.role === "admin" && (
         <UpgradeBanner onUpgrade={onUpgrade} />
       )}
-      <div className="border-t p-3">
+      <div className="mt-auto shrink-0 border-t p-3">
         <UpgradeFooter
           tenant={tenant}
           user={user}
@@ -1312,6 +1308,6 @@ export const SidebarContent = React.memo(function SidebarContent({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </>
+    </div>
   );
 });

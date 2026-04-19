@@ -70,6 +70,7 @@ export interface NoteEditorInnerProps {
   isAdmin: boolean;
   readOnly?: boolean;
   onShowGraph?: () => void;
+  onToggleAppSidebar?: () => void;
 }
 
 // Helper to get consistent color for users based on their ID
@@ -137,6 +138,7 @@ export const NoteEditorInner = React.memo(function NoteEditorInner({
   isAdmin,
   readOnly = false,
   onShowGraph,
+  onToggleAppSidebar,
 }: NoteEditorInnerProps) {
   const { data: noteData, isLoading, error } = useNote(noteId);
   const { data: foldersData } = useFolders();
@@ -963,6 +965,7 @@ export const NoteEditorInner = React.memo(function NoteEditorInner({
         canRestore={isAdmin || (tenant?.members_can_edit ?? true)}
         currentContent={editor?.getJSON()}
         onShowGraph={onShowGraph}
+        onToggleAppSidebar={onToggleAppSidebar}
       />
       <div className="flex flex-1 overflow-hidden">
         <NoteEditorSidebar
@@ -991,7 +994,7 @@ export const NoteEditorInner = React.memo(function NoteEditorInner({
               </div>
             </div>
           )}
-          <div className="mx-auto w-full max-w-4xl px-4 pt-12 pb-24 md:px-8">
+          <div className="mx-auto w-full max-w-6xl px-4 pt-12 pb-24 md:px-8">
             <input
               className={cn(
                 "text-foreground m-0 mb-4 w-full border-none bg-transparent p-0 text-4xl font-extrabold tracking-tight transition-none focus:ring-0 focus:outline-none focus-visible:ring-0",

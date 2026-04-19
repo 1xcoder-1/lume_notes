@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { useRouter } from "nextjs-toploader/app";
+import { useRouter } from "next/navigation";
 import { useSession, signOut } from "next-auth/react";
 import Image from "next/image";
 import { motion } from "framer-motion";
@@ -38,6 +38,12 @@ import { TestimonialCard, FAQItem } from "@/components/landing-components";
 import { AdvancedHero } from "@/components/advanced-hero";
 import { SmoothScroll } from "@/components/smooth-scroll";
 import { useTheme } from "next-themes";
+import { gsap } from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(ScrollTrigger);
+}
 
 const testimonials = [
   {
@@ -123,9 +129,203 @@ export default function LandingPage() {
   const { theme, setTheme } = useTheme();
   const [mounted, setMounted] = React.useState(false);
 
+  // Refs for GSAP
+  const headerRef = React.useRef<HTMLElement>(null);
+  const logoRef = React.useRef<HTMLDivElement>(null);
+  const navRef = React.useRef<HTMLElement>(null);
+  const actionsRef = React.useRef<HTMLDivElement>(null);
+  const lineRef = React.useRef<HTMLDivElement>(null);
+
+  // Section Refs
+  const featuresRef = React.useRef<HTMLElement>(null);
+  const workflowRef = React.useRef<HTMLElement>(null);
+  const reviewsRef = React.useRef<HTMLElement>(null);
+  const faqRef = React.useRef<HTMLElement>(null);
+  const ctaSectionRef = React.useRef<HTMLElement>(null);
+
   React.useEffect(() => {
     setMounted(true);
+
+    const ctx = gsap.context(() => {
+      // Navbar Animation
+      const navTl = gsap.timeline({
+        defaults: { ease: "power4.out", duration: 1.2 },
+      });
+
+      gsap.set(headerRef.current, { y: -30, opacity: 0 });
+      gsap.set(logoRef.current, { x: -30, opacity: 0 });
+      gsap.set(actionsRef.current, { x: 30, opacity: 0 });
+      gsap.set(lineRef.current, { width: "0%", opacity: 0 });
+
+      if (navRef.current) {
+        gsap.set(navRef.current.children, { y: 15, opacity: 0 });
+      }
+
+      navTl
+        .to(headerRef.current, { y: 0, opacity: 1, duration: 1.5 }, 0.3)
+        .to(
+          lineRef.current,
+          { width: "80%", opacity: 1, duration: 1.2 },
+          "-=1.0"
+        )
+        .to(logoRef.current, { x: 0, opacity: 1, duration: 1 }, "-=0.8")
+        .to(actionsRef.current, { x: 0, opacity: 1, duration: 1 }, "-=1.0");
+
+      if (navRef.current) {
+        navTl.to(
+          navRef.current.children,
+          {
+            y: 0,
+            opacity: 1,
+            stagger: 0.1,
+            duration: 0.8,
+          },
+          "-=0.7"
+        );
+      }
+
+      // --- SECTION ANIMATIONS ---
+
+      // Features Section
+      if (featuresRef.current) {
+        const title = featuresRef.current.querySelector(".section-header");
+        const cards = featuresRef.current.querySelector(".features-grid");
+
+        gsap.from(title, {
+          scrollTrigger: {
+            trigger: title,
+            start: "top 85%",
+          },
+          y: 30,
+          opacity: 0,
+          duration: 1,
+          ease: "power3.out",
+        });
+
+        if (cards) {
+          gsap.from(cards.children, {
+            scrollTrigger: {
+              trigger: cards,
+              start: "top 85%",
+            },
+            y: 40,
+            opacity: 0,
+            stagger: 0.1,
+            duration: 0.8,
+            ease: "power3.out",
+          });
+        }
+      }
+
+      // Workflow Section
+      if (workflowRef.current) {
+        const title = workflowRef.current.querySelector(".section-header");
+        const content = workflowRef.current.querySelector(".workflow-card");
+
+        gsap.from(title, {
+          scrollTrigger: {
+            trigger: title,
+            start: "top 85%",
+          },
+          y: 30,
+          opacity: 0,
+          duration: 1,
+          ease: "power3.out",
+        });
+
+        if (content) {
+          gsap.from(content, {
+            scrollTrigger: {
+              trigger: content,
+              start: "top 85%",
+            },
+            scale: 0.95,
+            opacity: 0,
+            duration: 1.2,
+            ease: "power3.out",
+          });
+        }
+      }
+
+      // Reviews Section
+      if (reviewsRef.current) {
+        const title = reviewsRef.current.querySelector(".section-header");
+        const marquee = reviewsRef.current.querySelector(".reviews-marquee");
+
+        gsap.from(title, {
+          scrollTrigger: {
+            trigger: title,
+            start: "top 85%",
+          },
+          y: 30,
+          opacity: 0,
+          duration: 1,
+          ease: "power3.out",
+        });
+
+        if (marquee) {
+          gsap.from(marquee, {
+            scrollTrigger: {
+              trigger: marquee,
+              start: "top 85%",
+            },
+            y: 50,
+            opacity: 0,
+            duration: 1.2,
+            ease: "power3.out",
+          });
+        }
+      }
+
+      // FAQ Section
+      if (faqRef.current) {
+        const title = faqRef.current.querySelector(".section-header");
+        const list = faqRef.current.querySelector(".faq-list");
+
+        gsap.from(title, {
+          scrollTrigger: {
+            trigger: title,
+            start: "top 85%",
+          },
+          y: 30,
+          opacity: 0,
+          duration: 1,
+          ease: "power3.out",
+        });
+
+        if (list) {
+          gsap.from(list.children, {
+            scrollTrigger: {
+              trigger: list,
+              start: "top 85%",
+            },
+            y: 20,
+            opacity: 0,
+            stagger: 0.05,
+            duration: 0.8,
+            ease: "power3.out",
+          });
+        }
+      }
+
+      // CTA Section
+      if (ctaSectionRef.current) {
+        gsap.from(ctaSectionRef.current.children, {
+          scrollTrigger: {
+            trigger: ctaSectionRef.current,
+            start: "top 85%",
+          },
+          scale: 0.9,
+          opacity: 0,
+          duration: 1,
+          ease: "power3.out",
+        });
+      }
+    });
+
+    return () => ctx.revert();
   }, []);
+
   const isAuthenticated = status === "authenticated";
   const user = session?.user as any;
 
@@ -149,9 +349,21 @@ export default function LandingPage() {
 
         {/* Updated Header - Floating Pill Nav */}
         <div className="fixed inset-x-0 top-6 z-50 flex justify-center px-4">
-          <header className="border-border/40 bg-background/80 relative flex h-14 w-full max-w-5xl items-center justify-between rounded-full border px-5 shadow-sm backdrop-blur-md">
+          <header
+            ref={headerRef}
+            style={{ opacity: 0 }}
+            className="border-border/40 bg-background/80 relative flex h-14 w-full max-w-5xl items-center justify-between rounded-full border px-5 shadow-sm backdrop-blur-md"
+          >
+            {/* Decorative bottom line */}
+            <div
+              ref={lineRef}
+              className="bg-primary/20 absolute bottom-2 left-1/2 h-[1px] -translate-x-1/2 rounded-full"
+              style={{ width: "0%" }}
+            />
             {/* Logo Group */}
             <div
+              ref={logoRef}
+              style={{ opacity: 0 }}
               className="z-10 flex w-[160px] cursor-pointer items-center gap-2 transition-opacity hover:opacity-80"
               onClick={() => router.push("/")}
             >
@@ -168,7 +380,10 @@ export default function LandingPage() {
             </div>
 
             {/* Navigation Links - Absolute Center */}
-            <nav className="absolute top-1/2 left-1/2 hidden -translate-x-1/2 -translate-y-1/2 items-center gap-8 lg:flex">
+            <nav
+              ref={navRef}
+              className="absolute top-1/2 left-1/2 hidden -translate-x-1/2 -translate-y-1/2 items-center gap-8 lg:flex"
+            >
               {["Features", "Workflow", "Reviews", "FAQ"].map(item => (
                 <a
                   key={item}
@@ -181,7 +396,11 @@ export default function LandingPage() {
             </nav>
 
             {/* Actions Group - Right */}
-            <div className="z-10 flex w-[160px] items-center justify-end gap-3">
+            <div
+              ref={actionsRef}
+              style={{ opacity: 0 }}
+              className="z-10 flex w-[160px] items-center justify-end gap-3"
+            >
               <Button
                 variant="ghost"
                 size="icon"
@@ -278,9 +497,10 @@ export default function LandingPage() {
         {/* FEATURE SECTION - Industrial Level */}
         <section
           id="features"
+          ref={featuresRef}
           className="container mx-auto max-w-[1240px] px-4 pt-32 pb-8"
         >
-          <div className="mb-16">
+          <div className="section-header mb-16">
             <div className="text-primary mb-6 flex items-center gap-2 font-mono text-sm font-bold tracking-widest">
               <span className="opacity-60">//</span> FEATURES
             </div>
@@ -296,7 +516,7 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div className="border-border/60 bg-border/40 overflow-hidden rounded-[24px] border shadow-2xl">
+          <div className="features-grid border-border/60 bg-border/40 overflow-hidden rounded-[24px] border shadow-2xl">
             <div className="grid grid-cols-1 gap-px md:grid-cols-2 lg:grid-cols-3">
               {/* Feature 1 */}
               <div className="bg-background hover:bg-card/40 group relative flex flex-col items-start p-10 text-left transition-colors md:p-12">
@@ -398,9 +618,10 @@ export default function LandingPage() {
         {/* SPEED & COMMAND PALETTE SECTION */}
         <section
           id="workflow"
+          ref={workflowRef}
           className="relative container mx-auto max-w-[1240px] overflow-hidden px-4 py-32"
         >
-          <div className="mb-16">
+          <div className="section-header mb-16">
             <div className="text-primary mb-6 flex items-center gap-2 font-mono text-sm font-bold tracking-widest">
               <span className="opacity-60">//</span> WORKFLOW
             </div>
@@ -418,7 +639,7 @@ export default function LandingPage() {
 
           <div className="bg-primary/10 pointer-events-none absolute top-[60%] left-1/2 h-[600px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-[120px]" />
 
-          <div className="border-border/60 bg-border/40 relative flex flex-col items-stretch justify-between overflow-hidden rounded-[32px] border shadow-2xl backdrop-blur-3xl lg:flex-row">
+          <div className="workflow-card border-border/60 bg-border/40 relative flex flex-col items-stretch justify-between overflow-hidden rounded-[32px] border shadow-2xl backdrop-blur-3xl lg:flex-row">
             {/* Top decorative line */}
             <div className="via-primary/50 absolute inset-x-0 top-0 h-px bg-linear-to-r from-transparent to-transparent" />
 
@@ -528,9 +749,10 @@ export default function LandingPage() {
         {/* REVIEWS MARQUEE SECTION */}
         <section
           id="reviews"
+          ref={reviewsRef}
           className="relative container mx-auto max-w-[1240px] overflow-hidden px-4 py-8"
         >
-          <div className="mb-16">
+          <div className="section-header mb-16">
             <div className="text-primary mb-6 flex items-center gap-2 font-mono text-sm font-bold tracking-widest">
               <span className="opacity-60">//</span> WALL_OF_LOVE
             </div>
@@ -542,7 +764,7 @@ export default function LandingPage() {
             </h2>
           </div>
 
-          <div className="border-border/60 bg-border/20 relative h-[700px] overflow-hidden rounded-[40px] border shadow-2xl backdrop-blur-3xl">
+          <div className="reviews-marquee border-border/60 bg-border/20 relative h-[700px] overflow-hidden rounded-[40px] border shadow-2xl backdrop-blur-3xl">
             <div className="from-background pointer-events-none absolute inset-x-0 top-0 z-40 h-32 bg-linear-to-b to-transparent" />
             <div className="from-background pointer-events-none absolute inset-x-0 bottom-0 z-40 h-32 bg-linear-to-t to-transparent" />
 
@@ -584,9 +806,10 @@ export default function LandingPage() {
         {/* FAQ SECTION */}
         <section
           id="faq"
+          ref={faqRef}
           className="relative container mx-auto max-w-[1240px] overflow-hidden px-4 py-32"
         >
-          <div className="mb-16">
+          <div className="section-header mb-16">
             <div className="text-primary mb-6 flex items-center gap-2 font-mono text-sm font-bold tracking-widest">
               <span className="opacity-60">//</span> FAQ
             </div>
@@ -602,7 +825,7 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div className="border-border/60 bg-border/40 overflow-hidden rounded-[24px] border shadow-2xl">
+          <div className="faq-list border-border/60 bg-border/40 overflow-hidden rounded-[24px] border shadow-2xl">
             <div className="bg-border/60 flex flex-col gap-px">
               {faqs.map((f, i) => (
                 <div key={i} className="bg-background">
@@ -614,7 +837,10 @@ export default function LandingPage() {
         </section>
 
         {/* CTA FINAL SECTION - Industrial Card Styled */}
-        <section className="container mx-auto max-w-[1240px] px-4 pt-12 pb-40">
+        <section
+          ref={ctaSectionRef}
+          className="container mx-auto max-w-[1240px] px-4 pt-12 pb-40"
+        >
           <div className="border-border/60 bg-border/20 group relative flex flex-col items-center justify-between gap-12 overflow-hidden rounded-[32px] border p-12 backdrop-blur-3xl md:p-20 lg:flex-row">
             {/* Background Glow */}
             <div className="bg-primary/10 pointer-events-none absolute top-1/2 left-0 h-96 w-96 -translate-y-1/2 rounded-full opacity-50 blur-[120px] transition-opacity duration-1000 group-hover:opacity-80" />

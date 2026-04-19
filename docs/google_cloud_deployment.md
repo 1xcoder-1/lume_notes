@@ -13,6 +13,7 @@ This guide explains how to deploy the Lume Notes monorepo to Google Cloud Run us
 We use a multi-stage `Dockerfile` optimized for Turborepo and Next.js standalone mode.
 
 ### 1. Build the Image
+
 Use Google Cloud Build to compile the project. We pass the `NEXT_PUBLIC_LIVEBLOCKS_PUBLIC_KEY` as a build argument so it's embedded in the client-side bundle.
 
 ```bash
@@ -44,12 +45,12 @@ gcloud run deploy lume-notes \
 
 ## 🔑 Critical Environment Variables
 
-| Variable | Description |
-|----------|-------------|
-| `AUTH_TRUST_HOST` | Set to `true` to allow NextAuth to work on Cloud Run URLs. |
-| `NEXTAUTH_URL` | The public URL of your Cloud Run service. |
-| `DATABASE_URL` | Connection string for PostgreSQL (Supabase/Neon). |
-| `NEXT_PUBLIC_LIVEBLOCKS_PUBLIC_KEY` | Must be provided both at **Build Time** and **Runtime**. |
+| Variable                            | Description                                                |
+| ----------------------------------- | ---------------------------------------------------------- |
+| `AUTH_TRUST_HOST`                   | Set to `true` to allow NextAuth to work on Cloud Run URLs. |
+| `NEXTAUTH_URL`                      | The public URL of your Cloud Run service.                  |
+| `DATABASE_URL`                      | Connection string for PostgreSQL (Supabase/Neon).          |
+| `NEXT_PUBLIC_LIVEBLOCKS_PUBLIC_KEY` | Must be provided both at **Build Time** and **Runtime**.   |
 
 ## 🛠️ Configuration Files
 

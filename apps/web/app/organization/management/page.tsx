@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useCallback, useEffect, useState, useRef } from "react";
-import { useRouter } from "nextjs-toploader/app";
+import { useRouter } from "next/navigation";
 import { useSession } from "next-auth/react";
 import {
   Users,

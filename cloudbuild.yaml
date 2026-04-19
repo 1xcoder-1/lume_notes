@@ -1,11 +1,23 @@
 steps:
   # Build the image
-  - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', '$_AR_LOCATION-docker.pkg.dev/$PROJECT_ID/$_AR_REPOSITORY/lume-notes:latest', '--build-arg', 'NEXT_PUBLIC_LIVEBLOCKS_PUBLIC_KEY=$_LIVEBLOCKS_KEY', '.']
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "build",
+        "-t",
+        "$_AR_LOCATION-docker.pkg.dev/$PROJECT_ID/$_AR_REPOSITORY/lume-notes:latest",
+        "--build-arg",
+        "NEXT_PUBLIC_LIVEBLOCKS_PUBLIC_KEY=$_LIVEBLOCKS_KEY",
+        ".",
+      ]
 
   # Push the image to Artifact Registry
-  - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', '$_AR_LOCATION-docker.pkg.dev/$PROJECT_ID/$_AR_REPOSITORY/lume-notes:latest']
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      [
+        "push",
+        "$_AR_LOCATION-docker.pkg.dev/$PROJECT_ID/$_AR_REPOSITORY/lume-notes:latest",
+      ]
 
 substitutions:
   _AR_LOCATION: us-central1

@@ -10,7 +10,8 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { useRouter } from "nextjs-toploader/app";
+import { motion } from "framer-motion";
+import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
 import { signOut, useSession } from "next-auth/react";
 import { Button } from "@workspace/ui/components/button";
@@ -74,6 +75,8 @@ import {
   Target,
   ListTodo,
   Rocket,
+  PanelLeft,
+  PanelLeftClose,
 } from "lucide-react";
 import { NOTE_TEMPLATES, type Template } from "@/lib/templates";
 import { cn } from "@workspace/ui/lib/utils";
@@ -145,6 +148,7 @@ function NotesDashboardContent() {
   const { data: session, status } = useSession();
 
   const user = session?.user as UserType | null;
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
 
   const {
     data: notesData,
@@ -1176,37 +1180,76 @@ function NotesDashboardContent() {
         }
       />
 
-      <div className="flex h-svh w-full overflow-hidden">
-        {}
-        <aside className="bg-card hidden w-72 shrink-0 flex-col border-r md:flex">
-          <SidebarContent
-            notes={notes}
-            notesLoading={notesLoading}
-            notesError={notesError}
-            tenant={tenant}
-            user={user}
-            tenantLoading={tenantLoading}
-            limitReached={limitReached}
-            selectedId={selectedId}
-            onSelectNote={handleSelectNote}
-            onCreateNote={onCreateNote}
-            onDeleteNote={handleDeleteNote}
-            onConfirmDelete={confirmDeleteNote}
-            onInviteUser={onInviteUser}
-            onUpgrade={onUpgrade}
-            onLogout={handleLogout}
-            deleteNoteId={deleteNoteId}
-            setDeleteNoteId={setDeleteNoteId}
-            deleteNotePending={deleteNoteMutation.isPending}
-            onExportNote={handleExportNote}
-            onShareNote={handleShareNote}
-            onPDFUpload={handlePDFUpload}
-            onSelectFolder={handleSelectFolder}
-            selectedFolderId={selectedFolderId}
-          />
-        </aside>
+      <div className="bg-background flex h-svh w-full overflow-hidden">
+        <motion.aside
+          initial={false}
+          animate={{
+            width: isSidebarOpen ? (window.innerWidth < 768 ? "100%" : 288) : 0,
+            opacity: isSidebarOpen ? 1 : 0,
+          }}
+          transition={{
+            type: "spring",
+            stiffness: 300,
+            damping: 30,
+            opacity: { duration: 0.2 },
+          }}
+          className={cn(
+            "bg-card shrink-0 overflow-hidden border-r",
+            !isSidebarOpen && "border-none"
+          )}
+        >
+          <div className="h-full w-72">
+            <SidebarContent
+              notes={notes}
+              notesLoading={notesLoading}
+              notesError={notesError}
+              tenant={tenant}
+              user={user}
+              tenantLoading={tenantLoading}
+              limitReached={limitReached}
+              selectedId={selectedId}
+              onSelectNote={handleSelectNote}
+              onCreateNote={onCreateNote}
+              onDeleteNote={handleDeleteNote}
+              onConfirmDelete={confirmDeleteNote}
+              onInviteUser={onInviteUser}
+              onUpgrade={onUpgrade}
+              onLogout={handleLogout}
+              deleteNoteId={deleteNoteId}
+              setDeleteNoteId={setDeleteNoteId}
+              deleteNotePending={deleteNoteMutation.isPending}
+              onExportNote={handleExportNote}
+              onShareNote={handleShareNote}
+              onPDFUpload={handlePDFUpload}
+              onSelectFolder={handleSelectFolder}
+              selectedFolderId={selectedFolderId}
+              onToggleSidebar={() => setIsSidebarOpen(false)}
+            />
+          </div>
+        </motion.aside>
 
-        <section className="flex min-w-0 flex-1 flex-col">
+        <motion.section
+          layout
+          transition={{
+            type: "spring",
+            stiffness: 300,
+            damping: 30,
+          }}
+          className="relative flex min-w-0 flex-1 flex-col"
+        >
+          {!isSidebarOpen && !selectedId && (
+            <div className="absolute top-4 left-4 z-40 hidden md:block">
+              <Button
+                variant="outline"
+                size="icon"
+                className="hover:bg-accent size-8 rounded-lg shadow-sm"
+                onClick={() => setIsSidebarOpen(true)}
+                title="Expand Sidebar"
+              >
+                <PanelLeft className="size-4" />
+              </Button>
+            </div>
+          )}
           <Topbar
             limitReached={limitReached}
             canUpgrade={canUpgrade}
@@ -1278,6 +1321,9 @@ function NotesDashboardContent() {
                   isAdmin={user?.role === "admin"}
                   readOnly={editRestricted}
                   onShowGraph={() => setShowGraphView(true)}
+                  onToggleAppSidebar={
+                    !isSidebarOpen ? () => setIsSidebarOpen(true) : undefined
+                  }
                 />
 
                 {}
@@ -1379,7 +1425,7 @@ function NotesDashboardContent() {
               </div>
             )}
           </div>
-        </section>
+        </motion.section>
       </div>
 
       {showGraphView && (

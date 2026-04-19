@@ -357,25 +357,35 @@ export function NoteHistoryModal({
                   <div className="mx-auto max-w-3xl p-6 sm:p-10">
                     <article className="prose prose-sm dark:prose-invert max-w-none">
                       <div className="text-foreground/80 font-sans text-base leading-relaxed whitespace-pre-wrap">
-                        {showDiff && currentContent
-                          ? getDiff(
-                              extractTextFromTiptap(selectedEntry.content),
-                              extractTextFromTiptap(currentContent)
-                            ).map((part, index) => (
-                              <span
-                                key={index}
-                                className={cn(
-                                  part.removed
-                                    ? "bg-red-500/20 text-red-600 line-through decoration-red-400/50"
-                                    : "",
-                                  part.added
-                                    ? "bg-green-500/20 text-green-600 no-underline"
-                                    : ""
-                                )}
-                              >
-                                {part.value}
-                              </span>
-                            ))
+                        {showDiff && history && history.length > 0
+                          ? (() => {
+                              const selectedIndex = history.findIndex(
+                                e => e.id === selectedEntry.id
+                              );
+                              const previousEntry = history[selectedIndex + 1]; // history is desc, so +1 is older
+                              const baseContent = previousEntry
+                                ? extractTextFromTiptap(previousEntry.content)
+                                : "";
+
+                              return getDiff(
+                                baseContent,
+                                extractTextFromTiptap(selectedEntry.content)
+                              ).map((part, index) => (
+                                <span
+                                  key={index}
+                                  className={cn(
+                                    part.removed
+                                      ? "bg-red-500/20 text-red-600 line-through decoration-red-400/50"
+                                      : "",
+                                    part.added
+                                      ? "bg-green-500/20 font-medium text-green-600 no-underline"
+                                      : ""
+                                  )}
+                                >
+                                  {part.value}
+                                </span>
+                              ));
+                            })()
                           : extractTextFromTiptap(selectedEntry.content)}
                       </div>
                     </article>

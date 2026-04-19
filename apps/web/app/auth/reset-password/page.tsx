@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, Suspense } from "react";
-import { useRouter } from "nextjs-toploader/app";
+import { useRouter } from "next/navigation";
 import { useSearchParams } from "next/navigation";
 import { ResetPasswordForm } from "@workspace/ui/components/reset-password-form";
 import {

@@ -66,11 +66,15 @@ export async function POST(req: Request) {
     }
 
     const model = genAI.getGenerativeModel({
-      model: "gemini-1.5-flash",
+      model: "gemini-2.5-flash",
       systemInstruction: systemPrompt,
     });
 
-    const userPrompt = prompt || context || "No description or content yet.";
+    const userPrompt = context
+      ? prompt
+        ? `${prompt}\n\nContent:\n${context}`
+        : context
+      : prompt || "No description or content yet.";
 
     const contents: any[] = [userPrompt];
     if (fileData && mimeType) {

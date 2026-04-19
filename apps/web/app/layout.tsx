@@ -43,10 +43,12 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <head>
-        <script
-          src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.mjs"
-          type="module"
-        ></script>
+        <script type="module">
+          import * as pdfjsLib from
+          'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.min.mjs';
+          window.pdfjsLib = pdfjsLib; pdfjsLib.GlobalWorkerOptions.workerSrc =
+          'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.10.38/pdf.worker.min.mjs';
+        </script>
       </head>
       <body
         className={`${fontSans.variable} ${fontMono.variable} font-sans antialiased`}

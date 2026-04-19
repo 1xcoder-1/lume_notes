@@ -78,6 +78,7 @@ import { toast } from "sonner";
 // @ts-ignore
 import "./note-styles.css";
 import { cn } from "@workspace/ui/lib/utils";
+import { motion, AnimatePresence } from "framer-motion";
 
 const ToolbarItem = memo(
   ({ tool, isVisible }: { tool: any; isVisible: boolean }) => {
@@ -125,6 +126,7 @@ export type ToolbarProps = {
   canRestore?: boolean;
   currentContent?: any;
   onShowGraph?: () => void;
+  onToggleAppSidebar?: () => void;
 };
 
 export function Toolbar({
@@ -148,6 +150,7 @@ export function Toolbar({
   canRestore = true,
   currentContent,
   onShowGraph,
+  onToggleAppSidebar,
 }: ToolbarProps) {
   if (!editor) return null;
 
@@ -1310,18 +1313,32 @@ export function Toolbar({
         onChange={onImageUpload}
       />
       <div className="flex items-center gap-1.5">
-        <div>
+        <div className="flex items-center gap-1">
+          {onToggleAppSidebar && (
+            <Button
+              size="sm"
+              variant="ghost"
+              onClick={onToggleAppSidebar}
+              className="h-8 w-8 p-0"
+              title="Expand App Sidebar"
+            >
+              <PanelLeft className="text-muted-foreground size-5" />
+            </Button>
+          )}
           {onToggleLeftSidebar && (
             <Button
               size="sm"
               variant="ghost"
               onClick={onToggleLeftSidebar}
               className="h-8 w-8 p-0"
+              title="Note Details & Tags"
             >
               <PanelLeft
                 className={cn(
                   "size-5",
-                  isLeftSidebarOpen ? "text-primary" : "text-muted-foreground"
+                  isLeftSidebarOpen
+                    ? "text-primary"
+                    : "text-muted-foreground/40"
                 )}
               />
             </Button>
@@ -1429,30 +1446,57 @@ export function Toolbar({
             <Download className="size-4" />
           </Button>
         )}
-        <div className="flex flex-col items-stretch gap-1">
+        <div className="flex flex-col items-stretch">
           <Button
             size="sm"
             onClick={onSave}
             disabled={disabled || saving || (!isDirty && !saving)}
             className={cn(
-              "relative h-8 w-14 shrink-0 overflow-hidden rounded-lg font-semibold transition-all",
+              "group relative h-8 min-w-[84px] shrink-0 overflow-hidden rounded-lg font-semibold transition-all duration-300",
               isDirty
-                ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-md"
-                : "text-muted-foreground hover:bg-accent border border-gray-600/30 bg-transparent"
+                ? "bg-primary text-primary-foreground shadow-md hover:shadow-[0_0_15px_rgba(var(--primary),0.4)]"
+                : "border-border/60 text-muted-foreground bg-transparent"
             )}
           >
-            <div className="flex items-center justify-center gap-2">
+            <AnimatePresence mode="wait">
               {saving ? (
-                <>
-                  <Loader2 className="text-primary-foreground size-3 animate-spin" />
-                  <span className="text-[10px]">Saving...</span>
-                </>
+                <motion.div
+                  key="saving"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="flex items-center justify-center gap-2"
+                >
+                  <Loader2 className="size-3 animate-spin" />
+                  <span className="text-[11px] tracking-tight">Saving...</span>
+                </motion.div>
+              ) : isDirty ? (
+                <motion.div
+                  key="save"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -10 }}
+                  className="flex items-center justify-center gap-1.5"
+                >
+                  <Save className="size-3.5" />
+                  <span className="text-[11px] tracking-tight">Save</span>
+                </motion.div>
               ) : (
-                <span className="text-[10px]">
-                  {isDirty ? "Save" : "Saved"}
-                </span>
+                <motion.div
+                  key="saved"
+                  initial={{ opacity: 0, scale: 0.8 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="flex items-center justify-center gap-1.5"
+                >
+                  <Check className="size-3.5 text-emerald-500" />
+                  <span className="text-[11px] tracking-tight">Saved</span>
+                </motion.div>
               )}
-            </div>
+            </AnimatePresence>
+
+            {isDirty && !saving && (
+              <div className="group-hover:animate-shimmer absolute inset-0 -translate-x-full bg-linear-to-r from-transparent via-white/10 to-transparent" />
+            )}
           </Button>
         </div>
       </div>
@@ -1487,7 +1531,6 @@ export function NoteEditor({
         <BubbleMenu
           editor={editor}
           shouldShow={({ editor, from, to }) => {
-            // Robust check to HIDE the menu on images or if selection is empty/readonly
             const nodeName = (editor.state.selection as any)?.node?.type.name;
             if (
               readOnly ||
@@ -1500,34 +1543,44 @@ export function NoteEditor({
             return true;
           }}
           tippyOptions={{
-            duration: 100,
+            duration: 150,
             zIndex: 99,
             placement: "top",
             appendTo: "parent",
           }}
-          className="bg-background animate-in fade-in zoom-in flex items-center gap-1 rounded-lg border p-1 shadow-md duration-200"
+          className="bg-background/80 animate-in fade-in zoom-in-95 border-primary/10 flex items-center gap-1.5 rounded-2xl border p-1.5 shadow-[0_10px_30px_-10px_rgba(0,0,0,0.3)] backdrop-blur-xl duration-300"
         >
           {!readOnly && (
             <div className="flex items-center gap-1 px-1">
               <AIAssistant editor={editor} disabled={readOnly} />
-              <div className="bg-border mx-1 h-4 w-px" />
+              <div className="bg-primary/10 mx-1.5 h-4 w-px" />
               <Button
                 size="sm"
                 variant="ghost"
-                className="h-8 w-8 p-0"
+                className="hover:bg-primary/10 hover:text-primary h-8 w-8 rounded-lg p-0 transition-all active:scale-90"
                 onClick={() => editor.chain().focus().toggleBold().run()}
                 disabled={readOnly}
               >
-                <Bold className="size-4" />
+                <Bold
+                  className={cn(
+                    "size-4",
+                    editor.isActive("bold") && "text-primary"
+                  )}
+                />
               </Button>
               <Button
                 size="sm"
                 variant="ghost"
-                className="h-8 w-8 p-0"
+                className="hover:bg-primary/10 hover:text-primary h-8 w-8 rounded-lg p-0 transition-all active:scale-90"
                 onClick={() => editor.chain().focus().toggleItalic().run()}
                 disabled={readOnly}
               >
-                <Italic className="size-4" />
+                <Italic
+                  className={cn(
+                    "size-4",
+                    editor.isActive("italic") && "text-primary"
+                  )}
+                />
               </Button>
             </div>
           )}

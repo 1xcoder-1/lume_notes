@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-
+import { motion, AnimatePresence } from "framer-motion";
 import {
   Sparkles,
   Loader2,
@@ -17,6 +17,8 @@ import {
   ArrowDownToLine,
   CheckCheck,
   Languages,
+  Zap,
+  RotateCcw,
 } from "lucide-react";
 import { Badge } from "@workspace/ui/components/badge";
 import { Button } from "@workspace/ui/components/button";
@@ -34,6 +36,7 @@ import {
   CommandList,
 } from "@workspace/ui/components/command";
 import { toast } from "sonner";
+import { cn } from "@workspace/ui/lib/utils";
 
 interface AIAssistantProps {
   editor: any;
@@ -56,6 +59,7 @@ export function AIAssistant({
   const [selectedOption, setSelectedOption] = useState<string | null>(null);
   const [completion, setCompletion] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [inputValue, setInputValue] = useState("");
   const [appliedRange, setAppliedRange] = useState<{
     from: number;
     to: number;
@@ -75,7 +79,6 @@ export function AIAssistant({
 
     try {
       const isSelection = !!selectedText;
-      // Filter out any image markers or placeholders to ensure AI stays text-focused
       let textToProcess = isSelection ? selectedText : editor.getText();
       textToProcess = textToProcess
         .replace(/\[Image:.*?\]/g, "")
@@ -136,6 +139,7 @@ export function AIAssistant({
       }
     } finally {
       setIsLoading(false);
+      setInputValue("");
     }
   };
 
@@ -179,137 +183,278 @@ export function AIAssistant({
           <Button
             variant="default"
             size="sm"
-            className="hover:shadow-primary/20 h-8 gap-1.5 shadow-sm transition-all hover:scale-[1.02]"
+            className={cn(
+              "group relative h-8 gap-1.5 overflow-hidden rounded-lg px-4 font-semibold transition-all duration-300",
+              "bg-primary text-primary-foreground hover:scale-[1.05] hover:shadow-[0_0_20px_rgba(var(--primary),0.5)] active:scale-95"
+            )}
             disabled={disabled}
           >
-            <Sparkles className="fill-primary-foreground/20 size-4 animate-pulse" />
-            <span className="text-xs font-semibold">Ask AI</span>
+            <div className="group-hover:animate-shimmer absolute inset-0 -translate-x-full bg-linear-to-r from-transparent via-white/20 to-transparent" />
+            <Sparkles className="size-3.5 animate-pulse fill-current" />
+            <span className="text-[11px] tracking-tight">Ask AI</span>
           </Button>
         </PopoverTrigger>
         <PopoverContent
-          className="border-primary/20 bg-popover w-96 p-0 shadow-2xl"
+          className="border-primary/20 bg-background/95 w-[420px] overflow-hidden rounded-2xl p-0 shadow-2xl backdrop-blur-xl"
           align="start"
-          sideOffset={8}
+          sideOffset={12}
         >
-          {!completion && !isLoading ? (
-            <Command className="border-none bg-transparent shadow-none **:data-[slot=command-input-wrapper]:border-none">
-              <CommandInput
-                placeholder="What should AI do?"
-                className="h-12 border-none py-6 focus:border-none focus:ring-0 focus-visible:ring-0 focus-visible:outline-none"
-              />
-              <CommandList>
-                <CommandEmpty>No actions found.</CommandEmpty>
-                <CommandGroup heading="Quick Actions">
-                  <CommandItem
-                    onSelect={() =>
-                      handleAIAction("improve", "Improve Writing")
-                    }
-                    className="cursor-pointer"
-                  >
-                    <Type className="mr-2 h-4 w-4 text-blue-500" />
-                    <span>Improve Writing</span>
-                  </CommandItem>
-                  <CommandItem
-                    onSelect={() =>
-                      handleAIAction("summarize", "Summarize Selection")
-                    }
-                    className="cursor-pointer"
-                  >
-                    <AlignLeft className="mr-2 h-4 w-4 text-green-500" />
-                    <span>Summarize Selection</span>
-                  </CommandItem>
-                  <CommandItem
-                    onSelect={() =>
-                      handleAIAction("rewrite", "Professional Rewrite")
-                    }
-                    className="cursor-pointer"
-                  >
-                    <Briefcase className="mr-2 h-4 w-4 text-purple-500" />
-                    <span>Make it Professional</span>
-                  </CommandItem>
-                  <CommandItem
-                    onSelect={() =>
-                      handleAIAction("brainstorm", "Brainstorm Ideas")
-                    }
-                    className="cursor-pointer"
-                  >
-                    <Lightbulb className="mr-2 h-4 w-4 text-yellow-500" />
-                    <span>Brainstorm Ideas</span>
-                  </CommandItem>
-                  <CommandItem
-                    onSelect={() => handleAIAction("grammar", "Fix Grammar")}
-                    className="cursor-pointer"
-                  >
-                    <CheckCheck className="mr-2 h-4 w-4 text-red-500" />
-                    <span>Fix Grammar</span>
-                  </CommandItem>
-                  <CommandItem
-                    onSelect={() => handleAIAction("translate", "Translate")}
-                    className="cursor-pointer"
-                  >
-                    <Languages className="mr-2 h-4 w-4 text-indigo-500" />
-                    <span>Translate</span>
-                  </CommandItem>
-                </CommandGroup>
-              </CommandList>
-            </Command>
-          ) : (
-            <div className="max-h-[400px] space-y-4 overflow-y-auto p-4">
-              <div className="flex items-center justify-between border-b pb-2">
-                <div className="flex items-center gap-2">
-                  <Sparkles className="text-primary size-4" />
-                  <span className="text-xs font-bold tracking-wider uppercase opacity-60">
-                    {selectedOption || "AI Result"}
-                  </span>
-                </div>
-                {isLoading && (
-                  <Loader2 className="text-primary size-3 animate-spin" />
-                )}
-              </div>
-
-              <div className="text-foreground/90 bg-accent/30 border-accent rounded-lg border p-3 text-sm leading-relaxed whitespace-pre-wrap italic">
-                {selectedOption === "Tag Note" && completion ? (
-                  <div className="flex flex-wrap gap-1.5 not-italic">
-                    {completion.split(",").map((tag, i) => (
-                      <Badge
-                        key={i}
-                        variant="secondary"
-                        className="bg-primary/10 text-primary border-primary/20 px-2 py-0.5"
-                      >
-                        {tag.trim()}
-                      </Badge>
-                    ))}
+          <AnimatePresence mode="wait">
+            {!completion && !isLoading ? (
+              <motion.div
+                initial={{ opacity: 0, y: 10, scale: 0.98 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, y: -10, scale: 0.98 }}
+                transition={{ duration: 0.2, ease: "easeOut" }}
+              >
+                <Command className="border-none bg-transparent shadow-none **:data-[slot=command-input-wrapper]:border-none">
+                  <div className="border-primary/10 relative flex items-center border-b px-3">
+                    <Zap className="text-primary size-4 opacity-50" />
+                    <CommandInput
+                      placeholder="What should I do with this text?"
+                      value={inputValue}
+                      onValueChange={setInputValue}
+                      onKeyDown={e => {
+                        if (e.key === "Enter" && inputValue) {
+                          handleAIAction("custom", inputValue);
+                        }
+                      }}
+                      className="placeholder:text-muted-foreground/50 h-12 border-none py-6 font-medium focus:border-none focus:ring-0 focus-visible:ring-0 focus-visible:outline-none"
+                    />
+                    <div className="text-muted-foreground/30 flex items-center gap-1 font-mono text-[10px]">
+                      <kbd className="bg-muted rounded px-1">ENTER</kbd>
+                    </div>
                   </div>
-                ) : (
-                  completion || "Generating response..."
-                )}
-              </div>
-
-              {!isLoading && completion && (
-                <div className="flex items-center justify-end gap-2 pt-2">
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    onClick={discardAIResult}
-                    className="text-muted-foreground hover:bg-destructive/10 hover:text-destructive h-8 text-xs"
-                  >
-                    <X className="mr-1 size-3" />
-                    Discard
-                  </Button>
-                  <Button
-                    size="sm"
-                    onClick={applyAIResult}
-                    className="bg-primary text-primary-foreground h-8 text-xs"
-                  >
-                    <Check className="mr-1 size-3" />
-                    {selectedOption === "Tag Note"
-                      ? "Apply Tags"
-                      : "Replace / Insert"}
-                  </Button>
+                  <CommandList className="max-h-[340px] p-2">
+                    <CommandEmpty className="text-muted-foreground py-10 text-center text-sm">
+                      No actions found.
+                    </CommandEmpty>
+                    {inputValue && (
+                      <CommandGroup heading="Custom Action">
+                        <CommandItem
+                          onSelect={() => handleAIAction("custom", inputValue)}
+                          className="bg-primary/5 hover:bg-primary/10 mb-2 cursor-pointer rounded-xl p-3 transition-colors"
+                        >
+                          <div className="bg-primary/10 flex h-8 w-8 items-center justify-center rounded-lg">
+                            <Sparkles className="text-primary size-4 animate-pulse" />
+                          </div>
+                          <div className="ml-3 flex flex-col">
+                            <span className="text-sm font-bold">
+                              Ask AI to:
+                            </span>
+                            <span className="text-muted-foreground truncate text-xs">
+                              {inputValue}
+                            </span>
+                          </div>
+                          <ChevronRight className="ml-auto size-4 opacity-30" />
+                        </CommandItem>
+                      </CommandGroup>
+                    )}
+                    <CommandGroup heading="Intelligent Actions">
+                      <div className="grid grid-cols-2 gap-1.5 p-1">
+                        <CommandItem
+                          onSelect={() =>
+                            handleAIAction("improve", "Improve Writing")
+                          }
+                          className="hover:bg-accent group cursor-pointer rounded-xl p-3 transition-all hover:scale-[1.02] active:scale-95"
+                        >
+                          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-500/10 text-blue-500 transition-colors group-hover:bg-blue-500 group-hover:text-white">
+                            <Type className="size-4" />
+                          </div>
+                          <span className="ml-3 text-xs font-semibold">
+                            Improve Writing
+                          </span>
+                        </CommandItem>
+                        <CommandItem
+                          onSelect={() =>
+                            handleAIAction("summarize", "Summarize Selection")
+                          }
+                          className="hover:bg-accent group cursor-pointer rounded-xl p-3 transition-all hover:scale-[1.02] active:scale-95"
+                        >
+                          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-500/10 text-emerald-500 transition-colors group-hover:bg-emerald-500 group-hover:text-white">
+                            <AlignLeft className="size-4" />
+                          </div>
+                          <span className="ml-3 text-xs font-semibold">
+                            Summarize
+                          </span>
+                        </CommandItem>
+                        <CommandItem
+                          onSelect={() =>
+                            handleAIAction("rewrite", "Professional Rewrite")
+                          }
+                          className="hover:bg-accent group cursor-pointer rounded-xl p-3 transition-all hover:scale-[1.02] active:scale-95"
+                        >
+                          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-purple-500/10 text-purple-500 transition-colors group-hover:bg-purple-500 group-hover:text-white">
+                            <Briefcase className="size-4" />
+                          </div>
+                          <span className="ml-3 text-xs font-semibold">
+                            Professional
+                          </span>
+                        </CommandItem>
+                        <CommandItem
+                          onSelect={() =>
+                            handleAIAction("brainstorm", "Brainstorm Ideas")
+                          }
+                          className="hover:bg-accent group cursor-pointer rounded-xl p-3 transition-all hover:scale-[1.02] active:scale-95"
+                        >
+                          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-500/10 text-amber-500 transition-colors group-hover:bg-amber-500 group-hover:text-white">
+                            <Lightbulb className="size-4" />
+                          </div>
+                          <span className="ml-3 text-xs font-semibold">
+                            Brainstorm
+                          </span>
+                        </CommandItem>
+                        <CommandItem
+                          onSelect={() =>
+                            handleAIAction("grammar", "Fix Grammar")
+                          }
+                          className="hover:bg-accent group cursor-pointer rounded-xl p-3 transition-all hover:scale-[1.02] active:scale-95"
+                        >
+                          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-rose-500/10 text-rose-500 transition-colors group-hover:bg-rose-500 group-hover:text-white">
+                            <CheckCheck className="size-4" />
+                          </div>
+                          <span className="ml-3 text-xs font-semibold">
+                            Fix Grammar
+                          </span>
+                        </CommandItem>
+                        <CommandItem
+                          onSelect={() =>
+                            handleAIAction("translate", "Translate")
+                          }
+                          className="hover:bg-accent group cursor-pointer rounded-xl p-3 transition-all hover:scale-[1.02] active:scale-95"
+                        >
+                          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-500/10 text-indigo-500 transition-colors group-hover:bg-indigo-500 group-hover:text-white">
+                            <Languages className="size-4" />
+                          </div>
+                          <span className="ml-3 text-xs font-semibold">
+                            Translate
+                          </span>
+                        </CommandItem>
+                      </div>
+                    </CommandGroup>
+                  </CommandList>
+                </Command>
+              </motion.div>
+            ) : (
+              <motion.div
+                key="result"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                className="flex max-h-[500px] flex-col overflow-hidden"
+              >
+                <div className="border-primary/10 bg-muted/30 flex items-center justify-between border-b px-4 py-3">
+                  <div className="flex items-center gap-2">
+                    <div className="bg-primary/10 flex h-6 w-6 items-center justify-center rounded-md">
+                      <Sparkles className="text-primary size-3 animate-pulse" />
+                    </div>
+                    <span className="text-[10px] font-bold tracking-[0.1em] uppercase opacity-60">
+                      {selectedOption || "AI Result"}
+                    </span>
+                  </div>
+                  {isLoading ? (
+                    <div className="flex items-center gap-2">
+                      <span className="animate-pulse text-[10px] font-medium opacity-50">
+                        Thinking...
+                      </span>
+                      <Loader2 className="text-primary size-3 animate-spin" />
+                    </div>
+                  ) : (
+                    <Badge
+                      variant="outline"
+                      className="border-emerald-500/20 bg-emerald-500/10 text-[9px] font-bold text-emerald-500 uppercase"
+                    >
+                      Complete
+                    </Badge>
+                  )}
                 </div>
-              )}
-            </div>
-          )}
+
+                <div className="custom-scrollbar relative min-h-[120px] overflow-y-auto p-5">
+                  {isLoading && (
+                    <motion.div
+                      initial={{ top: 0 }}
+                      animate={{ top: "100%" }}
+                      transition={{
+                        duration: 2,
+                        repeat: Infinity,
+                        ease: "linear",
+                      }}
+                      className="via-primary absolute left-0 z-20 h-px w-full bg-linear-to-r from-transparent to-transparent opacity-50 shadow-[0_0_10px_rgba(var(--primary),1)]"
+                    />
+                  )}
+
+                  <div className="text-foreground/90 relative z-10 font-mono text-[13px] leading-[1.8] whitespace-pre-wrap">
+                    {selectedOption === "Tag Note" && completion ? (
+                      <div className="flex flex-wrap gap-2 py-2">
+                        {completion.split(",").map((tag, i) => (
+                          <motion.div
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{
+                              delay: i * 0.05,
+                              type: "spring",
+                              stiffness: 300,
+                            }}
+                            key={i}
+                          >
+                            <Badge
+                              variant="secondary"
+                              className="bg-primary/5 text-primary border-primary/20 px-3 py-1 text-xs font-bold"
+                            >
+                              #{tag.trim()}
+                            </Badge>
+                          </motion.div>
+                        ))}
+                      </div>
+                    ) : (
+                      completion || (
+                        <div className="space-y-3 py-4">
+                          <div className="bg-primary/5 h-3 w-[95%] animate-pulse rounded-full" />
+                          <div className="bg-primary/5 h-3 w-[80%] animate-pulse rounded-full" />
+                          <div className="bg-primary/5 h-3 w-[85%] animate-pulse rounded-full" />
+                          <div className="bg-primary/5 h-3 w-[60%] animate-pulse rounded-full" />
+                        </div>
+                      )
+                    )}
+                  </div>
+                </div>
+
+                {!isLoading && completion && (
+                  <div className="border-primary/10 bg-muted/20 flex items-center justify-between gap-3 border-t p-4">
+                    <Button
+                      size="sm"
+                      variant="ghost"
+                      onClick={discardAIResult}
+                      className="text-muted-foreground h-9 rounded-xl px-4 text-xs font-bold transition-all hover:bg-rose-500/10 hover:text-rose-500"
+                    >
+                      <RotateCcw className="mr-2 size-3.5" />
+                      Retry
+                    </Button>
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        onClick={() => setIsOpen(false)}
+                        className="text-muted-foreground h-9 rounded-xl px-4 text-xs font-bold"
+                      >
+                        Cancel
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={applyAIResult}
+                        className="bg-primary text-primary-foreground hover:shadow-primary/30 h-9 rounded-xl px-5 text-xs font-black shadow-lg transition-all hover:scale-[1.05] active:scale-95"
+                      >
+                        <Check className="mr-2 size-3.5" />
+                        {selectedOption === "Tag Note"
+                          ? "Apply Tags"
+                          : "Replace Content"}
+                      </Button>
+                    </div>
+                  </div>
+                )}
+              </motion.div>
+            )}
+          </AnimatePresence>
         </PopoverContent>
       </Popover>
     </div>

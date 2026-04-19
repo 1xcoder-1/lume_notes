@@ -6,7 +6,7 @@ import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { Button } from "@workspace/ui/components/button";
 import { ChevronRight, Download } from "lucide-react";
 import { useSession } from "next-auth/react";
-import { useRouter } from "nextjs-toploader/app";
+import { useRouter } from "next/navigation";
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -42,10 +42,19 @@ export const AdvancedHero = () => {
         defaults: { ease: "power3.out", duration: 1.2 },
       });
 
-      tl.from(badgeRef.current, { opacity: 0, y: 15, duration: 0.8 }, 0.2)
-        .from(titleRef.current, { opacity: 0, y: 20 }, "-=0.6")
-        .from(descRef.current, { opacity: 0, y: 15 }, "-=1.0")
-        .from(ctaRef.current, { opacity: 0, y: 15 }, "-=1.0");
+      // Set initial states to ensure no jump
+      gsap.set(
+        [badgeRef.current, titleRef.current, descRef.current, ctaRef.current],
+        {
+          opacity: 0,
+          y: 20,
+        }
+      );
+
+      tl.to(badgeRef.current, { opacity: 1, y: 0, duration: 0.8 }, 0.2)
+        .to(titleRef.current, { opacity: 1, y: 0 }, "-=0.6")
+        .to(descRef.current, { opacity: 1, y: 0 }, "-=1.0")
+        .to(ctaRef.current, { opacity: 1, y: 0 }, "-=1.0");
     }, heroRef);
 
     return () => ctx.revert();
@@ -71,7 +80,11 @@ export const AdvancedHero = () => {
 
       <div className="relative z-10 container mx-auto mt-20 flex flex-col items-center px-4 text-center md:mt-32">
         {/* Badge styled as the Cap Launch Week pill */}
-        <div ref={badgeRef} className="mb-8 flex justify-center">
+        <div
+          ref={badgeRef}
+          style={{ opacity: 0 }}
+          className="mb-8 flex justify-center"
+        >
           <div className="border-border/60 bg-background/50 text-muted-foreground hover:bg-muted/50 flex items-center gap-2 rounded-full border px-4 py-1.5 text-[13px] font-medium shadow-sm backdrop-blur-sm transition-colors">
             Launch Week Day 5:{" "}
             <span className="text-primary cursor-pointer hover:underline">
@@ -84,6 +97,7 @@ export const AdvancedHero = () => {
         {/* Main Title - Dark, Bold, tracking tight */}
         <h1
           ref={titleRef}
+          style={{ opacity: 0 }}
           className="text-foreground mx-auto mb-8 max-w-5xl font-mono text-5xl leading-[1.05] font-bold tracking-tight sm:text-7xl md:text-[84px]"
         >
           Stop wasting time on <br />
@@ -93,6 +107,7 @@ export const AdvancedHero = () => {
         {/* Subtitle / Description */}
         <p
           ref={descRef}
+          style={{ opacity: 0 }}
           className="text-muted-foreground mx-auto mb-10 max-w-4xl font-mono text-base leading-[1.8] opacity-80 md:text-lg lg:text-[20px]"
         >
           Lume is the open source alternative to modern note taking.
@@ -101,7 +116,11 @@ export const AdvancedHero = () => {
         </p>
 
         {/* CTA Buttons */}
-        <div ref={ctaRef} className="flex flex-col items-center">
+        <div
+          ref={ctaRef}
+          style={{ opacity: 0 }}
+          className="flex flex-col items-center"
+        >
           <div className="flex flex-col gap-4 sm:flex-row">
             <Button
               variant="outline"
