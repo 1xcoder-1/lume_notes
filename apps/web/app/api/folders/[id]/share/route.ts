@@ -65,6 +65,17 @@ export async function POST(
       return NextResponse.json({ error: "Folder not found" }, { status: 404 });
     }
 
+    const tenant = await prisma.tenant.findUnique({
+      where: { id: (session.user as any).tenantId },
+    });
+
+    if (session.user.role === "member" && !(tenant as any)?.members_can_share) {
+      return NextResponse.json(
+        { error: "Access denied: Members cannot share folders" },
+        { status: 403 }
+      );
+    }
+
     // @ts-ignore
     console.log(
       "Available prisma models in route:",
@@ -172,6 +183,17 @@ export async function DELETE(
     const sharing = await (prisma as any).sharedFolder.findUnique({
       where: { folder_id: id },
     });
+
+    const tenant = await prisma.tenant.findUnique({
+      where: { id: (session.user as any).tenantId },
+    });
+
+    if (session.user.role === "member" && !(tenant as any)?.members_can_share) {
+      return NextResponse.json(
+        { error: "Access denied: Members cannot share folders" },
+        { status: 403 }
+      );
+    }
 
     if (!folder || !sharing) {
       return NextResponse.json(

@@ -25,7 +25,10 @@ export async function GET(request: NextRequest) {
 
     const notes = await prisma.note.findMany({
       where: { tenant_id: session.user.tenantId },
-      include: { author: { select: { email: true } } },
+      include: {
+        author: { select: { email: true } },
+        shared_note: true,
+      },
       orderBy: { created_at: "desc" },
     });
 

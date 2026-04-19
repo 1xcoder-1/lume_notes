@@ -42,6 +42,7 @@ interface ShareModalProps {
     title: string;
     content: any;
   } | null;
+  shareRestricted?: boolean;
 }
 
 interface SharedNoteData {
@@ -105,7 +106,12 @@ const expiryOptions = [
   { value: "30d", label: "30 days" },
 ];
 
-export function ShareModal({ open, onOpenChange, note }: ShareModalProps) {
+export function ShareModal({
+  open,
+  onOpenChange,
+  note,
+  shareRestricted,
+}: ShareModalProps) {
   const [includeCss, setIncludeCss] = useState(true);
   const [expiresIn, setExpiresIn] = useState("never");
   const [copied, setCopied] = useState(false);
@@ -202,6 +208,8 @@ export function ShareModal({ open, onOpenChange, note }: ShareModalProps) {
     updateShareMutation.isPending ||
     deleteShareMutation.isPending;
 
+  const isRestricted = !!shareRestricted;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-md">
@@ -274,7 +282,7 @@ export function ShareModal({ open, onOpenChange, note }: ShareModalProps) {
                       setIncludeCss(checked as boolean);
                       handleUpdateShare({ include_css: checked as boolean });
                     }}
-                    disabled={updateShareMutation.isPending}
+                    disabled={updateShareMutation.isPending || isRestricted}
                   />
                   <Label
                     htmlFor="includeCss"
@@ -291,7 +299,7 @@ export function ShareModal({ open, onOpenChange, note }: ShareModalProps) {
                   variant="destructive"
                   size="sm"
                   onClick={handleDeleteShare}
-                  disabled={deleteShareMutation.isPending}
+                  disabled={deleteShareMutation.isPending || isRestricted}
                   className="w-full"
                 >
                   {deleteShareMutation.isPending ? (
@@ -326,6 +334,7 @@ export function ShareModal({ open, onOpenChange, note }: ShareModalProps) {
                       onCheckedChange={checked =>
                         setIncludeCss(checked as boolean)
                       }
+                      disabled={isRestricted}
                     />
                     <Label
                       htmlFor="includeCssNew"
@@ -337,8 +346,16 @@ export function ShareModal({ open, onOpenChange, note }: ShareModalProps) {
 
                   <div className="space-y-2">
                     <Label htmlFor="expiresIn">Link Expiration</Label>
-                    <Select value={expiresIn} onValueChange={setExpiresIn}>
-                      <SelectTrigger id="expiresIn" className="w-full">
+                    <Select
+                      value={expiresIn}
+                      onValueChange={setExpiresIn}
+                      disabled={isRestricted}
+                    >
+                      <SelectTrigger
+                        id="expiresIn"
+                        className="w-full"
+                        disabled={isRestricted}
+                      >
                         <SelectValue placeholder="Select expiration" />
                       </SelectTrigger>
                       <SelectContent>
@@ -369,7 +386,7 @@ export function ShareModal({ open, onOpenChange, note }: ShareModalProps) {
             {!shareData && (
               <Button
                 onClick={handleCreateShare}
-                disabled={createShareMutation.isPending}
+                disabled={createShareMutation.isPending || isRestricted}
               >
                 {createShareMutation.isPending ? (
                   <>
@@ -383,6 +400,11 @@ export function ShareModal({ open, onOpenChange, note }: ShareModalProps) {
                   </>
                 )}
               </Button>
+            )}
+            {isRestricted && (
+              <p className="text-muted-foreground mt-2 text-center text-[10px] italic">
+                Sharing is restricted by your organization administrator.
+              </p>
             )}
           </DialogFooter>
         )}

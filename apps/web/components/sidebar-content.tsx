@@ -371,17 +371,38 @@ const SidebarNoteItem = React.memo(
           </div>
 
           <div className="flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
-            {!shareRestricted && (
-              <button
-                onClick={e => {
-                  e.stopPropagation();
-                  onShare(note);
-                }}
-                className="hover:bg-accent/80 rounded-md p-1"
-                title="Share"
-              >
-                <Share2 className="text-muted-foreground/70 size-3.5" />
-              </button>
+            {(note.shared_note || !shareRestricted) && (
+              <div className="flex items-center gap-0.5">
+                {note.shared_note && (
+                  <button
+                    onClick={e => {
+                      e.stopPropagation();
+                      const url = `${window.location.origin}/s/${note.shared_note!.token}`;
+                      navigator.clipboard.writeText(url);
+                      toast.success("Note link copied");
+                    }}
+                    className="hover:bg-accent/80 text-primary rounded-md p-1"
+                    title="Copy Share Link"
+                  >
+                    <Link className="size-3.5" />
+                  </button>
+                )}
+                <button
+                  onClick={e => {
+                    e.stopPropagation();
+                    onShare(note);
+                  }}
+                  className={cn(
+                    "hover:bg-accent/80 rounded-md p-1 transition-colors",
+                    note.shared_note
+                      ? "text-primary"
+                      : "text-muted-foreground/70"
+                  )}
+                  title={note.shared_note ? "Note is Shared" : "Share"}
+                >
+                  <Share2 className="size-3.5" />
+                </button>
+              </div>
             )}
             {!editRestricted && (
               <button
@@ -564,19 +585,39 @@ const SidebarFolderItem = React.memo(
             >
               <Plus className="text-muted-foreground/70 size-3.5" />
             </button>
-            <button
-              onClick={e => {
-                e.stopPropagation();
-                onShareFolder(folder);
-              }}
-              className={cn(
-                "hover:bg-accent/80 rounded-md p-1 transition-colors",
-                folder.sharing ? "text-primary" : "text-muted-foreground/70"
-              )}
-              title={folder.sharing ? "Folder is Shared" : "Share Portfolio"}
-            >
-              <Globe className="size-3.5" />
-            </button>
+            {(folder.sharing || !shareRestricted) && (
+              <div className="flex items-center gap-0.5">
+                {folder.sharing && (
+                  <button
+                    onClick={e => {
+                      e.stopPropagation();
+                      const url = `${window.location.origin}/s/f/${folder.sharing!.token}`;
+                      navigator.clipboard.writeText(url);
+                      toast.success("Folder link copied");
+                    }}
+                    className="hover:bg-accent/80 text-primary rounded-md p-1"
+                    title="Copy Share Link"
+                  >
+                    <Link className="size-3.5" />
+                  </button>
+                )}
+                <button
+                  onClick={e => {
+                    e.stopPropagation();
+                    onShareFolder(folder);
+                  }}
+                  className={cn(
+                    "hover:bg-accent/80 rounded-md p-1 transition-colors",
+                    folder.sharing ? "text-primary" : "text-muted-foreground/70"
+                  )}
+                  title={
+                    folder.sharing ? "Folder is Shared" : "Share Portfolio"
+                  }
+                >
+                  <Globe className="size-3.5" />
+                </button>
+              </div>
+            )}
             <button
               onClick={e => {
                 if (createRestricted) {
@@ -1433,7 +1474,9 @@ export const SidebarContent = React.memo(function SidebarContent({
                         });
                       }
                     }}
-                    disabled={toggleShareFolderMutation.isPending}
+                    disabled={
+                      toggleShareFolderMutation.isPending || shareRestricted
+                    }
                   >
                     {toggleShareFolderMutation.isPending ? (
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -1490,7 +1533,9 @@ export const SidebarContent = React.memo(function SidebarContent({
                       });
                     }
                   }}
-                  disabled={toggleShareFolderMutation.isPending}
+                  disabled={
+                    toggleShareFolderMutation.isPending || shareRestricted
+                  }
                 >
                   {toggleShareFolderMutation.isPending ? (
                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -1499,6 +1544,11 @@ export const SidebarContent = React.memo(function SidebarContent({
                   )}
                   Publish Portfolio
                 </Button>
+                {shareRestricted && (
+                  <p className="text-muted-foreground text-center text-[10px] italic">
+                    Sharing is restricted by your organization administrator.
+                  </p>
+                )}
               </div>
             )}
           </div>

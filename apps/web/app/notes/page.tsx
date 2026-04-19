@@ -1189,6 +1189,7 @@ function NotesDashboardContent() {
             ? (shareNote as { id: string; title: string; content: any })
             : null
         }
+        shareRestricted={user?.role !== "admin" && !tenant?.members_can_share}
       />
 
       <div className="bg-background flex h-svh w-full overflow-hidden">
