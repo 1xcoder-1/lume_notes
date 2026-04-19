@@ -27,7 +27,14 @@ export async function POST(request: NextRequest) {
       include: { tenant: true },
     });
 
-    if (existingUser?.tenant) {
+    if (!existingUser) {
+      return NextResponse.json(
+        { error: "User account no longer exists. Please sign in again." },
+        { status: 401 }
+      );
+    }
+
+    if (existingUser.tenant) {
       return NextResponse.json(
         { error: "User already has an organization" },
         { status: 400 }

@@ -24,6 +24,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const userRecord = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { tenant_id: true },
+    });
+
+    if (!userRecord || userRecord.tenant_id !== session.user.tenantId) {
+      return NextResponse.json(
+        { error: "Tenant not found or access revoked" },
+        { status: 403 }
+      );
+    }
+
     if (!(await authLimiter.check(5, session.user.id))) {
       return rateLimitResponse();
     }

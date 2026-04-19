@@ -211,6 +211,7 @@
   .animate-marquee-up {
     animation: marquee-up 35s linear infinite;
   }
+
   .animate-marquee-down {
     animation: marquee-down 35s linear infinite;
   }
@@ -220,6 +221,7 @@
   0% {
     transform: translateY(0);
   }
+
   100% {
     transform: translateY(calc(-50% - 0.75rem));
   }
@@ -229,6 +231,7 @@
   0% {
     transform: translateY(calc(-50% - 0.75rem));
   }
+
   100% {
     transform: translateY(0);
   }

@@ -47,6 +47,7 @@ model User {
   tenant_id     String?
   emailVerified DateTime?
   image         String?
+  name          String?
   first_name    String?
   last_name     String?
   accounts      Account[]
@@ -73,8 +74,20 @@ model Note {
   author      User        @relation(fields: [author_id], references: [id], onDelete: Cascade)
   tenant      Tenant      @relation(fields: [tenant_id], references: [id], onDelete: Cascade)
   shared_note SharedNote?
+  history     NoteHistory[]
 
   @@map("notes")
+}
+
+model NoteHistory {
+  id         String   @id @default(cuid())
+  note_id    String
+  title      String
+  content    Json
+  created_at DateTime @default(now())
+  note       Note     @relation(fields: [note_id], references: [id], onDelete: Cascade)
+
+  @@map("note_history")
 }
 
 model SharedNote {

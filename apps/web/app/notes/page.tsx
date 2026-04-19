@@ -106,6 +106,8 @@ import {
   inviteUserSchema,
 } from "@/lib/validations";
 
+import { copyToClipboard } from "@/lib/clipboard";
+
 function generateRandomPassword(): string {
   const chars =
     "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
@@ -114,10 +116,6 @@ function generateRandomPassword(): string {
     password += chars.charAt(Math.floor(Math.random() * chars.length));
   }
   return password;
-}
-
-function copyToClipboard(text: string): void {
-  navigator.clipboard.writeText(text);
 }
 
 function useWindowSize() {
@@ -820,7 +818,7 @@ function NotesDashboardContent() {
           }
         }}
       >
-        <DialogContent className="flex max-h-[90vh] flex-col overflow-hidden p-0 sm:max-w-2xl">
+        <DialogContent className="flex max-h-[90vh] flex-col overflow-hidden p-0 sm:max-w-4xl">
           <DialogHeader className="p-6 pb-2">
             <DialogTitle className="flex items-center gap-2 text-xl">
               <Plus className="text-primary size-5" />

@@ -9,6 +9,25 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    const userRecord = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { tenant_id: true, email: true },
+    });
+
+    if (!userRecord) {
+      return NextResponse.json(
+        { error: "User account no longer exists. Please sign in again." },
+        { status: 401 }
+      );
+    }
+
+    if (userRecord.tenant_id !== session.user.tenantId) {
+      return NextResponse.json(
+        { error: "Tenant not found or access revoked" },
+        { status: 403 }
+      );
+    }
+
     const tenant = await prisma.tenant.findUnique({
       where: { id: session.user.tenantId },
     });
@@ -21,18 +40,13 @@ export async function GET(request: NextRequest) {
       where: { tenant_id: session.user.tenantId },
     });
 
-    const userRecord = await prisma.user.findUnique({
-      where: { id: session.user.id },
-      select: { email: true },
-    });
-
     return NextResponse.json({
       name: tenant.name,
       slug: tenant.slug,
       plan: tenant.plan,
       noteCount,
       limit: tenant.plan === "free" ? 3 : null,
-      email: userRecord?.email || null,
+      email: userRecord.email,
       members_can_edit: (tenant as any).members_can_edit,
       members_can_create: (tenant as any).members_can_create,
       members_can_share: (tenant as any).members_can_share,

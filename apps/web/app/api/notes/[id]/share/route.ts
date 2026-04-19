@@ -12,6 +12,18 @@ export async function GET(
   }
 
   try {
+    const userRecord = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { tenant_id: true },
+    });
+
+    if (!userRecord || userRecord.tenant_id !== session.user.tenantId) {
+      return NextResponse.json(
+        { error: "Tenant not found or access revoked" },
+        { status: 403 }
+      );
+    }
+
     const { id } = await params;
 
     const note = await prisma.note.findFirst({
@@ -55,6 +67,18 @@ export async function POST(
   }
 
   try {
+    const userRecord = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { tenant_id: true },
+    });
+
+    if (!userRecord || userRecord.tenant_id !== session.user.tenantId) {
+      return NextResponse.json(
+        { error: "Tenant not found or access revoked" },
+        { status: 403 }
+      );
+    }
+
     const { id } = await params;
     const body = await request.json().catch(() => ({}));
     const { include_css = true, expires_in } = body;
@@ -125,6 +149,18 @@ export async function PUT(
   }
 
   try {
+    const userRecord = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { tenant_id: true },
+    });
+
+    if (!userRecord || userRecord.tenant_id !== session.user.tenantId) {
+      return NextResponse.json(
+        { error: "Tenant not found or access revoked" },
+        { status: 403 }
+      );
+    }
+
     const { id } = await params;
     const body = await request.json();
     const { is_public, include_css, expires_in } = body;
@@ -207,6 +243,18 @@ export async function DELETE(
   }
 
   try {
+    const userRecord = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { tenant_id: true },
+    });
+
+    if (!userRecord || userRecord.tenant_id !== session.user.tenantId) {
+      return NextResponse.json(
+        { error: "Tenant not found or access revoked" },
+        { status: 403 }
+      );
+    }
+
     const { id } = await params;
 
     const note = await prisma.note.findFirst({

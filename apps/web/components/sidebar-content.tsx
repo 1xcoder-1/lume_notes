@@ -291,6 +291,7 @@ interface SidebarNoteItemProps {
   onDelete: (id: string) => void;
   isDeletePending: boolean;
   editRestricted: boolean;
+  shareRestricted?: boolean;
 }
 
 const SidebarNoteItem = React.memo(
@@ -302,6 +303,7 @@ const SidebarNoteItem = React.memo(
     onDelete,
     isDeletePending,
     editRestricted,
+    shareRestricted,
   }: SidebarNoteItemProps) => {
     return (
       <div
@@ -341,31 +343,35 @@ const SidebarNoteItem = React.memo(
             )}
           </div>
           <div className="flex items-center gap-1 opacity-0 transition-opacity group-hover:opacity-100">
-            <button
-              onClick={e => {
-                e.stopPropagation();
-                onShare(note);
-              }}
-              className="hover:bg-background rounded-md p-1"
-              title="Share"
-            >
-              <Share2 className="text-muted-foreground size-3" />
-            </button>
-            <button
-              onClick={e => {
-                e.stopPropagation();
-                onDelete(note.id);
-              }}
-              className="hover:bg-background text-destructive rounded-md p-1"
-              title="Delete"
-              disabled={isDeletePending}
-            >
-              {isDeletePending ? (
-                <div className="size-3 animate-spin rounded-full border border-current border-t-transparent" />
-              ) : (
-                <Trash2 className="size-3" />
-              )}
-            </button>
+            {!shareRestricted && (
+              <button
+                onClick={e => {
+                  e.stopPropagation();
+                  onShare(note);
+                }}
+                className="hover:bg-background rounded-md p-1"
+                title="Share"
+              >
+                <Share2 className="text-muted-foreground size-3" />
+              </button>
+            )}
+            {!editRestricted && (
+              <button
+                onClick={e => {
+                  e.stopPropagation();
+                  onDelete(note.id);
+                }}
+                className="hover:bg-background text-destructive rounded-md p-1"
+                title="Delete"
+                disabled={isDeletePending}
+              >
+                {isDeletePending ? (
+                  <div className="size-3 animate-spin rounded-full border border-current border-t-transparent" />
+                ) : (
+                  <Trash2 className="size-3" />
+                )}
+              </button>
+            )}
           </div>
         </div>
       </div>
@@ -388,6 +394,7 @@ interface SidebarFolderItemProps {
   deleteNotePending: boolean;
   editRestricted: boolean;
   createRestricted: boolean;
+  shareRestricted?: boolean;
   onAddSubfolder: (id: string, name: string) => void;
   onDeleteFolder: (e: React.MouseEvent, id: string, name: string) => void;
   updateNoteMutation: any;
@@ -413,6 +420,7 @@ const SidebarFolderItem = React.memo(
     deleteNotePending,
     editRestricted,
     createRestricted,
+    shareRestricted,
     onAddSubfolder,
     onDeleteFolder,
     updateNoteMutation,
@@ -557,6 +565,7 @@ const SidebarFolderItem = React.memo(
                 deleteNotePending={deleteNotePending}
                 editRestricted={editRestricted}
                 createRestricted={createRestricted}
+                shareRestricted={shareRestricted}
                 onAddSubfolder={onAddSubfolder}
                 onDeleteFolder={onDeleteFolder}
                 updateNoteMutation={updateNoteMutation}
@@ -574,6 +583,7 @@ const SidebarFolderItem = React.memo(
                 onDelete={onDeleteNote}
                 isDeletePending={deleteNoteId === note.id && deleteNotePending}
                 editRestricted={editRestricted}
+                shareRestricted={shareRestricted}
               />
             ))}
 
@@ -646,6 +656,7 @@ export const SidebarContent = React.memo(function SidebarContent({
 
   const createRestricted = user?.role !== "admin" && !tenant.members_can_create;
   const editRestricted = user?.role !== "admin" && !tenant.members_can_edit;
+  const shareRestricted = user?.role !== "admin" && !tenant.members_can_share;
 
   const toggleFolder = React.useCallback((folderId: string) => {
     setExpandedFolders(prev => ({ ...prev, [folderId]: !prev[folderId] }));
@@ -781,6 +792,7 @@ export const SidebarContent = React.memo(function SidebarContent({
                       deleteNoteId === note.id && deleteNotePending
                     }
                     editRestricted={editRestricted}
+                    shareRestricted={shareRestricted}
                   />
                 ))
             )}
@@ -856,6 +868,7 @@ export const SidebarContent = React.memo(function SidebarContent({
                   deleteNotePending={deleteNotePending}
                   editRestricted={editRestricted}
                   createRestricted={createRestricted}
+                  shareRestricted={shareRestricted}
                   onAddSubfolder={onAddSubfolder}
                   onDeleteFolder={handleDeleteFolder}
                   updateNoteMutation={updateNoteMutation}
@@ -902,6 +915,7 @@ export const SidebarContent = React.memo(function SidebarContent({
                     deleteNoteId === note.id && deleteNotePending
                   }
                   editRestricted={editRestricted}
+                  shareRestricted={shareRestricted}
                 />
               ))}
               {(!notesByFolderId["root"] ||

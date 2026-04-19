@@ -6,6 +6,7 @@ import {
   type UseMutationResult,
 } from "@tanstack/react-query";
 import { toast } from "sonner";
+import { signOut } from "next-auth/react";
 
 export interface Note {
   id: string;
@@ -66,10 +67,37 @@ const getAuthHeaders = (): Record<string, string> => {
   return { "Content-Type": "application/json" };
 };
 
-const handleApiError = (error: any) => {
+const handleApiError = async (error: any) => {
   if (error.status === 401) {
+    try {
+      const clonedError = error.clone();
+      const data = await clonedError.json();
+      if (
+        data.error === "User account no longer exists. Please sign in again."
+      ) {
+        await signOut({ callbackUrl: "/auth/login" });
+        return;
+      }
+    } catch (e) {
+      // Ignore JSON parsing errors
+    }
     window.location.href = "/auth/login";
     return;
+  }
+  if (error.status === 403 || error.status === 404) {
+    try {
+      const clonedError = error.clone();
+      const data = await clonedError.json();
+      if (
+        data.error === "Tenant not found or access revoked" ||
+        data.error === "Tenant not found"
+      ) {
+        window.location.href = "/organization/setup?refresh=true";
+        return;
+      }
+    } catch (e) {
+      // Ignore JSON parsing errors
+    }
   }
   throw error;
 };
@@ -147,6 +175,14 @@ export const api = {
     });
     if (!response.ok) handleApiError(response);
     return response.json();
+  },
+
+  removeOrganizationUser: async (id: string): Promise<void> => {
+    const response = await fetch(`/api/organization/users/${id}`, {
+      method: "DELETE",
+      headers: getAuthHeaders(),
+    });
+    if (!response.ok) handleApiError(response);
   },
 
   getOrganizationStats: async (): Promise<{
@@ -536,6 +572,21 @@ export const useOrganizationUsers = (
     queryFn: () => api.getOrganizationUsers(),
     staleTime: 1000 * 60 * 5,
     enabled,
+  });
+};
+
+export const useRemoveUser = (): UseMutationResult<void, Error, string> => {
+  const queryClient = useQueryClient();
+  return useMutation<void, Error, string>({
+    mutationFn: api.removeOrganizationUser,
+    onSuccess: () => {
+      toast.success("User removed successfully");
+      queryClient.invalidateQueries({ queryKey: ["organizationUsers"] });
+      queryClient.invalidateQueries({ queryKey: ["organizationStats"] });
+    },
+    onError: (error: any) => {
+      toast.error(error.message || "Failed to remove user");
+    },
   });
 };
 

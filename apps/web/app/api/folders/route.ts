@@ -10,6 +10,18 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    const userRecord = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { tenant_id: true },
+    });
+
+    if (!userRecord || userRecord.tenant_id !== session.user.tenantId) {
+      return NextResponse.json(
+        { error: "Tenant not found or access revoked" },
+        { status: 403 }
+      );
+    }
+
     const folders = await prisma.folder.findMany({
       where: { tenant_id: session.user.tenantId },
       orderBy: { created_at: "asc" },
@@ -32,6 +44,18 @@ export async function POST(request: NextRequest) {
   }
 
   try {
+    const userRecord = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { tenant_id: true },
+    });
+
+    if (!userRecord || userRecord.tenant_id !== session.user.tenantId) {
+      return NextResponse.json(
+        { error: "Tenant not found or access revoked" },
+        { status: 403 }
+      );
+    }
+
     const body = await request.json();
     const result = createFolderSchema.safeParse(body);
 

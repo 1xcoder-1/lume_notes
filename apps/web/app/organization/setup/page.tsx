@@ -41,13 +41,23 @@ export default function OrganizationSetupPage() {
       return;
     }
 
+    const searchParams = new URLSearchParams(window.location.search);
+    if (searchParams.get("refresh") === "true") {
+      // Clean URL and update session
+      window.history.replaceState({}, document.title, "/organization/setup");
+      update().then(() => {
+        setCheckingAuth(false);
+      });
+      return;
+    }
+
     if ((session?.user as any)?.tenantId) {
       router.push("/");
       return;
     }
 
     setCheckingAuth(false);
-  }, [session, status, router]);
+  }, [session, status, router, update]);
 
   const handleCreateOrganization = async (e: React.FormEvent) => {
     e.preventDefault();

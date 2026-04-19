@@ -69,8 +69,10 @@ import {
   Download,
   Share2,
   Loader2,
+  History,
 } from "lucide-react";
 import { AIAssistant } from "./ai-assistant";
+import { NoteHistoryModal } from "./note-history-modal";
 import { useUpdateNote } from "@/lib/api";
 import { toast } from "sonner";
 // @ts-ignore
@@ -120,6 +122,8 @@ export type ToolbarProps = {
   disabled?: boolean;
   isDirty?: boolean;
   canShare?: boolean;
+  canRestore?: boolean;
+  currentContent?: any;
   onShowGraph?: () => void;
 };
 
@@ -141,6 +145,8 @@ export function Toolbar({
   disabled = false,
   isDirty = false,
   canShare = true,
+  canRestore = true,
+  currentContent,
   onShowGraph,
 }: ToolbarProps) {
   if (!editor) return null;
@@ -148,6 +154,7 @@ export function Toolbar({
   const [linkUrl, setLinkUrl] = useState("");
   const [isPopoverOpen, setIsPopoverOpen] = useState(false);
   const [isHighlightPopoverOpen, setIsHighlightPopoverOpen] = useState(false);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
 
   const toolbarRef = useRef<HTMLDivElement>(null);
   const [visibleItemsCount, setVisibleItemsCount] = useState(20);
@@ -643,7 +650,7 @@ export function Toolbar({
                     variant="ghost"
                     className={itemCls(editor.isActive("highlight"))}
                     aria-label="Highlight"
-                    disabled={saving}
+                    disabled={disabled || readOnly || saving}
                   >
                     <Highlighter
                       className={`size-4 ${editor.isActive("highlight") ? "text-primary" : ""}`}
@@ -821,7 +828,7 @@ export function Toolbar({
                     variant="ghost"
                     className={itemCls(editor.isActive("link"))}
                     aria-label="Link"
-                    disabled={saving}
+                    disabled={disabled || readOnly || saving}
                   >
                     <Link
                       className={`size-4 ${editor.isActive("link") ? "text-primary" : ""}`}
@@ -1396,6 +1403,21 @@ export function Toolbar({
             </TooltipContent>
           </Tooltip>
         )}
+        {noteId && (
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setIsHistoryOpen(true)}
+                className="h-8 w-8 shrink-0 p-0"
+              >
+                <History className="size-4" />
+              </Button>
+            </TooltipTrigger>
+            <TooltipContent>Version History</TooltipContent>
+          </Tooltip>
+        )}
         {onExportNote && (
           <Button
             size="sm"
@@ -1434,6 +1456,18 @@ export function Toolbar({
           </Button>
         </div>
       </div>
+      {noteId && (
+        <NoteHistoryModal
+          open={isHistoryOpen}
+          onOpenChange={setIsHistoryOpen}
+          note={{ id: noteId, title: "Current Note" }}
+          canRestore={canRestore}
+          currentContent={currentContent}
+          onRestore={content => {
+            editor.commands.setContent(content);
+          }}
+        />
+      )}
     </div>
   );
 }

@@ -40,9 +40,10 @@ pnpm dev       # Starts the app at http://localhost:3000
 
 - **Real-Time Editing**: Edit notes with others instantly using Liveblocks and Yjs.
 - **Organization-Focused**: Isolated data for different teams (Multi-tenancy).
+- **Note Version History**: Track changes with IDE-style diffing and instant restoration.
 - **AI Assistant**: Chat with your notes and summarize documents.
+- **Visual Graph**: Map your knowledge base with an interactive force-directed graph.
 - **Smart Folders**: Keep everything organized with nested folders and tags.
-- **Rich Editor**: Professional writing experience with TipTap.
 
 ---
 
@@ -55,6 +56,7 @@ Detailed guides for all major features:
 - [User Authentication](docs/user_authentication.md) — How we handle login and security.
 - [Rich Text Editor](docs/rich_text_editor.md) — Our professional editing experience.
 - [Slash Commands](docs/slash_commands.md) — Faster editing and note linking with `/`.
+- [Note Version History](docs/version_history.md) — Tracking changes and restoring versions.
 - [Real-Time Collaboration](docs/realtime_collaboration.md) — Character-by-character syncing.
 - [AI Assistant](docs/aiassistant.md) — How AI helps you write and search.
 
@@ -63,6 +65,7 @@ Detailed guides for all major features:
 - [Folders & Navigation](docs/folder_location.md) — Managing your workspace.
 - [Nested Folders](docs/nested_folders.md) — Deeply organized note structures.
 - [Tags & Metadata](docs/tags_and_sorting.md) — Sorting and finding what you need.
+- [Backlinks & Graph View](docs/backlinks_and_graph.md) — Visualizing note relationships.
 - [Note Sharing](docs/note_sharing.md) — Collaborating with teammates.
 
 ### Tools & Exports

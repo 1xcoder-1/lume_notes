@@ -62,6 +62,8 @@ import {
 } from "@/lib/api";
 import { inviteUserSchema } from "@/lib/validations";
 import { Switch } from "@workspace/ui/components/switch";
+import { OrganizationMemberList } from "@/components/organization-member-list";
+import { copyToClipboard } from "@/lib/clipboard";
 
 interface OrganizationStats {
   name: string;
@@ -81,10 +83,6 @@ function generateRandomPassword(): string {
     password += chars.charAt(Math.floor(Math.random() * chars.length));
   }
   return password;
-}
-
-function copyToClipboard(text: string): void {
-  navigator.clipboard.writeText(text);
 }
 
 export default function OrganizationManagementPage() {
@@ -444,77 +442,12 @@ export default function OrganizationManagementPage() {
                   Loading team roster...
                 </p>
               </div>
-            ) : members && members.length > 0 ? (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="bg-muted/30 border-border/50 text-muted-foreground border-b text-left text-[10px] font-medium tracking-wider uppercase">
-                      <th className="px-6 py-3">Member</th>
-                      <th className="px-6 py-3">Role</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-border/50 divide-y">
-                    {members.map(member => (
-                      <tr
-                        key={member.id}
-                        className="group hover:bg-primary/5 transition-colors"
-                      >
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center gap-3">
-                            <div className="bg-primary/10 border-primary/20 ring-offset-background ring-primary/20 flex h-9 w-9 items-center justify-center overflow-hidden rounded-full border transition-all group-hover:ring-2">
-                              {member.image ? (
-                                <img
-                                  src={member.image}
-                                  alt=""
-                                  className="h-full w-full object-cover"
-                                />
-                              ) : (
-                                <span className="text-primary text-xs font-bold">
-                                  {(
-                                    member.first_name?.[0] ||
-                                    member.email?.[0] ||
-                                    "?"
-                                  ).toUpperCase()}
-                                </span>
-                              )}
-                            </div>
-                            <div className="flex flex-col">
-                              <span className="text-foreground group-hover:text-primary font-semibold transition-colors">
-                                {member.first_name
-                                  ? `${member.first_name} ${member.last_name || ""}`
-                                  : member.email.split("@")[0]}
-                              </span>
-                              <span className="text-muted-foreground text-xs">
-                                {member.email}
-                              </span>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <Badge
-                            variant={
-                              member.role === "admin" ? "secondary" : "outline"
-                            }
-                            className={`text-[10px] font-bold tracking-tighter uppercase ${member.role === "admin" ? "border-blue-500/20 bg-blue-500/10 text-blue-500" : "bg-muted/50 text-muted-foreground"}`}
-                          >
-                            {member.role === "admin" ? (
-                              <ShieldCheck className="mr-1 h-3 w-3" />
-                            ) : (
-                              <Users className="mr-1 h-3 w-3" />
-                            )}
-                            {member.role}
-                          </Badge>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
             ) : (
-              <div className="text-muted-foreground flex flex-col items-center gap-3 p-12 text-center italic">
-                <AlertTriangle className="h-8 w-8 opacity-20" />
-                No members found in this organization.
-              </div>
+              <OrganizationMemberList
+                members={members || []}
+                isAdmin={isAdmin}
+                tenantId={user?.tenantId}
+              />
             )}
           </CardContent>
         </Card>

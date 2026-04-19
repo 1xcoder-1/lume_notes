@@ -13,6 +13,18 @@ export async function GET(
   }
 
   try {
+    const userRecord = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { tenant_id: true },
+    });
+
+    if (!userRecord || userRecord.tenant_id !== session.user.tenantId) {
+      return NextResponse.json(
+        { error: "Tenant not found or access revoked" },
+        { status: 403 }
+      );
+    }
+
     const { id } = await params;
     const note = await prisma.note.findFirst({
       where: {
@@ -46,6 +58,18 @@ export async function PUT(
   }
 
   try {
+    const userRecord = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { tenant_id: true },
+    });
+
+    if (!userRecord || userRecord.tenant_id !== session.user.tenantId) {
+      return NextResponse.json(
+        { error: "Tenant not found or access revoked" },
+        { status: 403 }
+      );
+    }
+
     const { id } = await params;
     const body = await request.json();
 
@@ -81,16 +105,29 @@ export async function PUT(
       );
     }
 
-    const updatedNote = await prisma.note.update({
-      where: { id },
-      data: {
-        ...(title !== undefined && { title }),
-        ...(content !== undefined && { content }),
-        ...(tags !== undefined && { tags }),
-        ...(folder !== undefined && { folder }),
-        ...(folderId !== undefined && { folderId }),
-      },
-      include: { author: { select: { email: true } } },
+    const updatedNote = await prisma.$transaction(async tx => {
+      // Create history entry from current state before update
+      console.log(`[DEBUG] Creating history entry for note: ${id}`);
+      const historyEntry = await tx.noteHistory.create({
+        data: {
+          note_id: id,
+          title: note.title,
+          content: note.content as any,
+        },
+      });
+      console.log(`[DEBUG] History entry created: ${historyEntry.id}`);
+
+      return tx.note.update({
+        where: { id },
+        data: {
+          ...(title !== undefined && { title }),
+          ...(content !== undefined && { content }),
+          ...(tags !== undefined && { tags }),
+          ...(folder !== undefined && { folder }),
+          ...(folderId !== undefined && { folderId }),
+        },
+        include: { author: { select: { email: true } } },
+      });
     });
 
     return NextResponse.json(updatedNote);
@@ -113,6 +150,18 @@ export async function DELETE(
   }
 
   try {
+    const userRecord = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { tenant_id: true },
+    });
+
+    if (!userRecord || userRecord.tenant_id !== session.user.tenantId) {
+      return NextResponse.json(
+        { error: "Tenant not found or access revoked" },
+        { status: 403 }
+      );
+    }
+
     const { id } = await params;
     const note = await prisma.note.findFirst({
       where: {

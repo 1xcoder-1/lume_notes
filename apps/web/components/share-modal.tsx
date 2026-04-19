@@ -32,6 +32,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { copyToClipboard } from "@/lib/clipboard";
 
 interface ShareModalProps {
   open: boolean;
@@ -173,12 +174,12 @@ export function ShareModal({ open, onOpenChange, note }: ShareModalProps) {
 
   const handleCopyLink = async () => {
     if (!shareUrl) return;
-    try {
-      await navigator.clipboard.writeText(shareUrl);
+    const success = await copyToClipboard(shareUrl);
+    if (success) {
       setCopied(true);
       toast.success("Link copied to clipboard!");
       setTimeout(() => setCopied(false), 2000);
-    } catch {
+    } else {
       toast.error("Failed to copy link");
     }
   };

@@ -42,6 +42,7 @@ import {
   useTenant,
   useNotes,
 } from "@/lib/api";
+import { useQueryClient } from "@tanstack/react-query";
 import { NoteEditorSidebar } from "./note-editor-sidebar";
 import { AlertTriangle, File, User, Users } from "lucide-react";
 import Collaboration from "@tiptap/extension-collaboration";
@@ -739,6 +740,7 @@ export const NoteEditorInner = React.memo(function NoteEditorInner({
     onDirtyChange(false);
   }, [noteId, onDirtyChange]);
 
+  const queryClient = useQueryClient();
   const saveToAPI = useCallback(
     async (data: { title?: string; content?: any }) => {
       if (!editor || saving) return;
@@ -755,6 +757,9 @@ export const NoteEditorInner = React.memo(function NoteEditorInner({
           data: { title: titleToSave, content: contentToSave },
         });
 
+        // Invalidate history query so it refreshes instantly
+        queryClient.invalidateQueries({ queryKey: ["note-history", noteId] });
+
         // CRITICAL: Global Save Signal - notify ALL collaborators
         doc.getMap("metadata").set("lastSaveTimestamp", Date.now());
 
@@ -770,7 +775,15 @@ export const NoteEditorInner = React.memo(function NoteEditorInner({
         setSaving(false);
       }
     },
-    [editor, noteId, currentTitle, updateNoteMutation, onDirtyChange, saving]
+    [
+      editor,
+      noteId,
+      currentTitle,
+      updateNoteMutation,
+      onDirtyChange,
+      saving,
+      queryClient,
+    ]
   );
 
   useEffect(() => {
@@ -947,6 +960,8 @@ export const NoteEditorInner = React.memo(function NoteEditorInner({
         activeUsers={others as any}
         readOnly={readOnly}
         canShare={isAdmin || (tenant?.members_can_share ?? true)}
+        canRestore={isAdmin || (tenant?.members_can_edit ?? true)}
+        currentContent={editor?.getJSON()}
         onShowGraph={onShowGraph}
       />
       <div className="flex flex-1 overflow-hidden">

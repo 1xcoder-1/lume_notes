@@ -23,3 +23,5 @@ const nextConfig = {
 };
 
 export default nextConfig;
+// Force reload for Prisma client update
+

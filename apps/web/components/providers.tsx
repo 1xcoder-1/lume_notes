@@ -41,6 +41,8 @@ function AuthRedirectHandler() {
   return null;
 }
 
+import { GlobalPresence } from "@/components/global-presence";
+
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <SessionProvider>
@@ -54,6 +56,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
           enableColorScheme
         >
           <AuthRedirectHandler />
+          <GlobalPresence />
           {children}
         </NextThemesProvider>
       </QueryClientProvider>

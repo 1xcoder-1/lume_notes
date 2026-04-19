@@ -167,7 +167,6 @@ export default function LandingPage() {
               <span className="text-lg font-bold tracking-tight">lume</span>
             </div>
 
-
             {/* Navigation Links - Absolute Center */}
             <nav className="absolute top-1/2 left-1/2 hidden -translate-x-1/2 -translate-y-1/2 items-center gap-8 lg:flex">
               {["Features", "Workflow", "Reviews", "FAQ"].map(item => (
@@ -217,7 +216,7 @@ export default function LandingPage() {
                     variant="outline"
                     size="sm"
                     onClick={handleCTA}
-                    className="border-primary/20 bg-primary/5 hover:bg-primary/10 text-primary hidden h-8 gap-2 rounded-full px-4 font-mono text-[10px] font-bold transition-all hover:scale-105 active:scale-95 sm:flex"
+                    className="text-foreground border-border/50 hidden h-8 gap-2 rounded-full bg-transparent px-4 font-mono text-[10px] font-bold transition-all hover:scale-105 hover:bg-blue-600 hover:text-white active:scale-95 sm:flex dark:text-white"
                   >
                     <LayoutDashboard className="h-3.5 w-3.5" />
                     DASHBOARD
@@ -259,12 +258,6 @@ export default function LandingPage() {
                         </div>
                       </DropdownMenuLabel>
                       <DropdownMenuSeparator />
-                      <DropdownMenuItem
-                        onClick={handleCTA}
-                        className="cursor-pointer rounded-lg"
-                      >
-                        Dashboard
-                      </DropdownMenuItem>
                       <DropdownMenuItem
                         onClick={() => signOut({ callbackUrl: "/" })}
                         className="text-destructive cursor-pointer rounded-lg"

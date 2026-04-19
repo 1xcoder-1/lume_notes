@@ -10,17 +10,23 @@ import bcrypt from "bcryptjs";
 const config: NextAuthConfig = {
   adapter: {
     ...PrismaAdapter(prisma),
-    createUser: async data => {
-      const { name, ...rest } = data;
+    createUser: async (data: any) => {
+      const { name, email, image, emailVerified, ...rest } = data;
       return prisma.user.create({
         data: {
-          ...rest,
+          name,
+          email,
+          image,
+          emailVerified,
           first_name: name || null,
           role: "admin",
+          ...rest,
         },
       });
     },
   },
+  trustHost: true,
+  secret: process.env.AUTH_SECRET,
   session: {
     strategy: "jwt",
   },
@@ -153,6 +159,9 @@ const config: NextAuthConfig = {
           tenantPlan: (token as any).tenantPlan || null,
           role: (token as any).role || null,
         } as any;
+        if ((token as any).error) {
+          (session as any).error = (token as any).error;
+        }
       }
       return session;
     },
@@ -194,6 +203,9 @@ const config: NextAuthConfig = {
           (token as any).tenantSlug = dbUser.tenant?.slug;
           (token as any).tenantPlan = dbUser.tenant?.plan;
           (token as any).role = dbUser.role;
+        } else {
+          (token as any).error = "UserDeleted";
+          (token as any).tenantId = null;
         }
       }
 

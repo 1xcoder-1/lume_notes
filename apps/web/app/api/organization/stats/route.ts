@@ -25,6 +25,18 @@ export async function GET(request: NextRequest) {
       );
     }
 
+    const userRecord = await prisma.user.findUnique({
+      where: { id: user.id },
+      select: { tenant_id: true },
+    });
+
+    if (!userRecord || userRecord.tenant_id !== tenantId) {
+      return NextResponse.json(
+        { error: "Tenant not found or access revoked" },
+        { status: 403 }
+      );
+    }
+
     const [memberCount, adminCount, tenant] = await Promise.all([
       prisma.user.count({
         where: {

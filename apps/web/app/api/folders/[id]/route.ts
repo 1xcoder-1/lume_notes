@@ -14,6 +14,17 @@ export async function DELETE(
   }
 
   try {
+    const userRecord = await prisma.user.findUnique({
+      where: { id: session.user.id },
+      select: { tenant_id: true },
+    });
+
+    if (!userRecord || userRecord.tenant_id !== session.user.tenantId) {
+      return NextResponse.json(
+        { error: "Tenant not found or access revoked" },
+        { status: 403 }
+      );
+    }
     const folder = await prisma.folder.findFirst({
       where: {
         id,
