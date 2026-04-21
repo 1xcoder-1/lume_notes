@@ -1458,7 +1458,7 @@ export function Toolbar({
                 <Button
                   size="sm"
                   variant="outline"
-                  className="h-8 w-8 shrink-0 border-white/60 bg-transparent p-0 text-white"
+                  className="border-border text-foreground h-8 w-8 shrink-0 bg-transparent p-0"
                 >
                   <MoreHorizontal className="size-4" />
                 </Button>
