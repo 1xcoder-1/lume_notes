@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useMemo, useState, useEffect } from "react";
+import React, { useMemo, useState, useEffect, useCallback } from "react";
 import { Button } from "@workspace/ui/components/button";
 import { Separator } from "@workspace/ui/components/separator";
 import { ScrollArea } from "@workspace/ui/components/scroll-area";
@@ -76,12 +76,14 @@ import {
   PanelLeftClose,
   Globe,
   Link,
+  Edit2,
 } from "lucide-react";
 import { toast } from "sonner";
 import {
   useOrganizationStats,
   useUpdateNote,
   useFolders,
+  useUpdateFolder,
   useCreateFolder,
   useDeleteFolder,
   useToggleShareFolder,
@@ -323,10 +325,11 @@ const SidebarNoteItem = React.memo(
     onSelect,
     onShare,
     onDelete,
+    onRename,
     isDeletePending,
     editRestricted,
     shareRestricted,
-  }: SidebarNoteItemProps) => {
+  }: SidebarNoteItemProps & { onRename: (note: Note) => void }) => {
     return (
       <div
         draggable={!editRestricted}
@@ -370,57 +373,62 @@ const SidebarNoteItem = React.memo(
             </div>
           </div>
 
-          <div className="flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
-            {(note.shared_note || !shareRestricted) && (
-              <div className="flex items-center gap-0.5">
+          <div className="flex items-center gap-0.5 opacity-100 transition-opacity group-hover:opacity-100 md:opacity-0">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild onClick={e => e.stopPropagation()}>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="hover:bg-accent/80 size-6 rounded-md p-0"
+                >
+                  <MoreHorizontal className="size-3.5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="end"
+                className="w-40"
+                onClick={e => e.stopPropagation()}
+              >
+                <DropdownMenuItem
+                  onClick={() => onRename(note)}
+                  disabled={editRestricted}
+                >
+                  <Edit2 className="mr-2 size-3.5" />
+                  Rename
+                </DropdownMenuItem>
+                {(note.shared_note || !shareRestricted) && (
+                  <DropdownMenuItem onClick={() => onShare(note)}>
+                    <Share2 className="mr-2 size-3.5" />
+                    {note.shared_note ? "Update Share" : "Share Note"}
+                  </DropdownMenuItem>
+                )}
                 {note.shared_note && (
-                  <button
-                    onClick={e => {
-                      e.stopPropagation();
+                  <DropdownMenuItem
+                    onClick={() => {
                       const url = `${window.location.origin}/s/${note.shared_note!.token}`;
                       navigator.clipboard.writeText(url);
                       toast.success("Note link copied");
                     }}
-                    className="hover:bg-accent/80 text-primary rounded-md p-1"
-                    title="Copy Share Link"
                   >
-                    <Link className="size-3.5" />
-                  </button>
+                    <Link className="mr-2 size-3.5" />
+                    Copy Share Link
+                  </DropdownMenuItem>
                 )}
-                <button
-                  onClick={e => {
-                    e.stopPropagation();
-                    onShare(note);
-                  }}
-                  className={cn(
-                    "hover:bg-accent/80 rounded-md p-1 transition-colors",
-                    note.shared_note
-                      ? "text-primary"
-                      : "text-muted-foreground/70"
-                  )}
-                  title={note.shared_note ? "Note is Shared" : "Share"}
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={() => onDelete(note.id)}
+                  disabled={editRestricted || isDeletePending}
+                  className="text-destructive focus:text-destructive"
                 >
-                  <Share2 className="size-3.5" />
-                </button>
-              </div>
-            )}
-            {!editRestricted && (
-              <button
-                onClick={e => {
-                  e.stopPropagation();
-                  onDelete(note.id);
-                }}
-                className="hover:bg-destructive/10 text-destructive/70 hover:text-destructive rounded-md p-1"
-                title="Delete"
-                disabled={isDeletePending}
-              >
-                {isDeletePending ? (
-                  <Loader2 className="size-3.5 animate-spin" />
-                ) : (
-                  <Trash2 className="size-3.5" />
-                )}
-              </button>
-            )}
+                  {isDeletePending ? (
+                    <Loader2 className="mr-2 size-3.5 animate-spin" />
+                  ) : (
+                    <Trash2 className="mr-2 size-3.5" />
+                  )}
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </div>
@@ -447,6 +455,8 @@ interface SidebarFolderItemProps {
   onAddSubfolder: (id: string, name: string) => void;
   onDeleteFolder: (e: React.MouseEvent, id: string, name: string) => void;
   onShareFolder: (folder: any) => void;
+  onRenameFolder: (folder: any) => void;
+  onRenameNote: (note: Note) => void;
   updateNoteMutation: any;
   setExpandedFolders: React.Dispatch<
     React.SetStateAction<Record<string, boolean>>
@@ -474,6 +484,8 @@ const SidebarFolderItem = React.memo(
     onAddSubfolder,
     onDeleteFolder,
     onShareFolder,
+    onRenameFolder,
+    onRenameNote,
     updateNoteMutation,
     setExpandedFolders,
     ancestorIds,
@@ -569,70 +581,67 @@ const SidebarFolderItem = React.memo(
             </div>
           </div>
 
-          <div className="flex items-center gap-0.5 opacity-0 transition-opacity group-hover:opacity-100">
-            <button
-              onClick={e => {
-                e.stopPropagation();
-                if (createRestricted) {
-                  toast.error("Restricted: Members cannot create folders");
-                  return;
-                }
-                onAddSubfolder(folder.id, folder.name);
-              }}
-              disabled={createRestricted}
-              className="hover:bg-accent/80 rounded-md p-1 disabled:opacity-30"
-              title={createRestricted ? "Restricted" : "New Sub-folder"}
-            >
-              <Plus className="text-muted-foreground/70 size-3.5" />
-            </button>
-            {(folder.sharing || !shareRestricted) && (
-              <div className="flex items-center gap-0.5">
+          <div className="flex items-center gap-0.5 opacity-100 transition-opacity group-hover:opacity-100 md:opacity-0">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild onClick={e => e.stopPropagation()}>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="hover:bg-accent/80 size-6 rounded-md p-0"
+                >
+                  <MoreHorizontal className="size-3.5" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="end"
+                className="w-48"
+                onClick={e => e.stopPropagation()}
+              >
+                <DropdownMenuItem
+                  onClick={() => onAddSubfolder(folder.id, folder.name)}
+                  disabled={createRestricted}
+                >
+                  <Plus className="mr-2 size-3.5" />
+                  New Sub-folder
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onClick={() => onRenameFolder(folder)}
+                  disabled={createRestricted}
+                >
+                  <Edit2 className="mr-2 size-3.5" />
+                  Rename
+                </DropdownMenuItem>
+                {(folder.sharing || !shareRestricted) && (
+                  <DropdownMenuItem onClick={() => onShareFolder(folder)}>
+                    <Globe className="mr-2 size-3.5" />
+                    {folder.sharing ? "Update Share" : "Share Portfolio"}
+                  </DropdownMenuItem>
+                )}
                 {folder.sharing && (
-                  <button
-                    onClick={e => {
-                      e.stopPropagation();
+                  <DropdownMenuItem
+                    onClick={() => {
                       const url = `${window.location.origin}/s/f/${folder.sharing!.token}`;
                       navigator.clipboard.writeText(url);
                       toast.success("Folder link copied");
                     }}
-                    className="hover:bg-accent/80 text-primary rounded-md p-1"
-                    title="Copy Share Link"
                   >
-                    <Link className="size-3.5" />
-                  </button>
+                    <Link className="mr-2 size-3.5" />
+                    Copy Share Link
+                  </DropdownMenuItem>
                 )}
-                <button
-                  onClick={e => {
-                    e.stopPropagation();
-                    onShareFolder(folder);
-                  }}
-                  className={cn(
-                    "hover:bg-accent/80 rounded-md p-1 transition-colors",
-                    folder.sharing ? "text-primary" : "text-muted-foreground/70"
-                  )}
-                  title={
-                    folder.sharing ? "Folder is Shared" : "Share Portfolio"
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={e =>
+                    onDeleteFolder(e as any, folder.id, folder.name)
                   }
+                  disabled={createRestricted}
+                  className="text-destructive focus:text-destructive"
                 >
-                  <Globe className="size-3.5" />
-                </button>
-              </div>
-            )}
-            <button
-              onClick={e => {
-                if (createRestricted) {
-                  e.stopPropagation();
-                  toast.error("Restricted: Members cannot delete folders");
-                  return;
-                }
-                onDeleteFolder(e, folder.id, folder.name);
-              }}
-              disabled={createRestricted}
-              className="hover:bg-destructive/10 text-destructive/70 hover:text-destructive rounded-md p-1 disabled:opacity-30"
-              title={createRestricted ? "Restricted" : "Delete Folder"}
-            >
-              <Trash2 className="size-3.5" />
-            </button>
+                  <Trash2 className="mr-2 size-3.5" />
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
 
@@ -659,6 +668,8 @@ const SidebarFolderItem = React.memo(
                 onAddSubfolder={onAddSubfolder}
                 onDeleteFolder={onDeleteFolder}
                 onShareFolder={onShareFolder}
+                onRenameFolder={onRenameFolder}
+                onRenameNote={onRenameNote}
                 updateNoteMutation={updateNoteMutation}
                 setExpandedFolders={setExpandedFolders}
                 ancestorIds={newAncestorIds}
@@ -672,6 +683,7 @@ const SidebarFolderItem = React.memo(
                 onSelect={onSelectNote}
                 onShare={onShareNote}
                 onDelete={onDeleteNote}
+                onRename={onRenameNote}
                 isDeletePending={deleteNoteId === note.id && deleteNotePending}
                 editRestricted={editRestricted}
                 shareRestricted={shareRestricted}
@@ -728,6 +740,29 @@ export const SidebarContent = React.memo(function SidebarContent({
   onToggleSidebar,
 }: SidebarContentProps) {
   const [selectedTag, setSelectedTag] = React.useState<string | null>(null);
+
+  const maybeCloseSidebar = useCallback(() => {
+    if (
+      typeof window !== "undefined" &&
+      window.innerWidth < 768 &&
+      onToggleSidebar
+    ) {
+      onToggleSidebar();
+    }
+  }, [onToggleSidebar]);
+
+  const onSelectNoteWrapped = useCallback(
+    (id: string) => {
+      onSelectNote(id);
+      maybeCloseSidebar();
+    },
+    [onSelectNote, maybeCloseSidebar]
+  );
+
+  const onCreateNoteWrapped = useCallback(() => {
+    onCreateNote();
+    maybeCloseSidebar();
+  }, [onCreateNote, maybeCloseSidebar]);
   const isLoading = tenantLoading || notesLoading;
   const updateNoteMutation = useUpdateNote();
   const { data: foldersData } = useFolders();
@@ -753,6 +788,20 @@ export const SidebarContent = React.memo(function SidebarContent({
     string | null
   >(null);
   const [newSubfolderName, setNewSubfolderName] = React.useState("");
+  const updateFolderMutation = useUpdateFolder();
+
+  // Rename state
+  const [isRenamingFolder, setIsRenamingFolder] = React.useState(false);
+  const [renamingFolderId, setRenamingFolderId] = React.useState<string | null>(
+    null
+  );
+  const [renamingFolderName, setRenamingFolderName] = React.useState("");
+
+  const [isRenamingNote, setIsRenamingNote] = React.useState(false);
+  const [renamingNoteId, setRenamingNoteId] = React.useState<string | null>(
+    null
+  );
+  const [renamingNoteTitle, setRenamingNoteTitle] = React.useState("");
   const toggleShareFolderMutation = useToggleShareFolder();
   const [sharingFolderId, setSharingFolderId] = useState<string | null>(null);
   const sharingFolder =
@@ -871,6 +920,18 @@ export const SidebarContent = React.memo(function SidebarContent({
       setIsCreatingSubfolder(true);
     };
 
+    const handleRenameFolder = (folder: Folder) => {
+      setRenamingFolderId(folder.id);
+      setRenamingFolderName(folder.name);
+      setIsRenamingFolder(true);
+    };
+
+    const handleRenameNote = (note: Note) => {
+      setRenamingNoteId(note.id);
+      setRenamingNoteTitle(note.title || "");
+      setIsRenamingNote(true);
+    };
+
     return (
       <div className="space-y-4">
         {selectedTag ? (
@@ -891,9 +952,19 @@ export const SidebarContent = React.memo(function SidebarContent({
                     key={note.id}
                     note={note}
                     isSelected={selectedId === note.id}
-                    onSelect={onSelectNote}
-                    onShare={onShareNote!}
-                    onDelete={onDeleteNote}
+                    onSelect={onSelectNoteWrapped}
+                    onShare={note => {
+                      onShareNote?.(note);
+                      maybeCloseSidebar();
+                    }}
+                    onDelete={id => {
+                      onDeleteNote(id);
+                      maybeCloseSidebar();
+                    }}
+                    onRename={note => {
+                      handleRenameNote(note);
+                      maybeCloseSidebar();
+                    }}
                     isDeletePending={
                       deleteNoteId === note.id && deleteNotePending
                     }
@@ -916,17 +987,40 @@ export const SidebarContent = React.memo(function SidebarContent({
                   notesByFolderId={notesByFolderId}
                   selectedTag={selectedTag}
                   selectedId={selectedId}
-                  onSelectNote={onSelectNote}
-                  onShareNote={onShareNote!}
-                  onDeleteNote={onDeleteNote}
+                  onSelectNote={onSelectNoteWrapped}
+                  onShareNote={note => {
+                    onShareNote?.(note);
+                    maybeCloseSidebar();
+                  }}
+                  onDeleteNote={id => {
+                    onDeleteNote(id);
+                    maybeCloseSidebar();
+                  }}
+                  onAddSubfolder={(id, name) => {
+                    onAddSubfolder(id, name);
+                    maybeCloseSidebar();
+                  }}
+                  onDeleteFolder={(e, id, name) => {
+                    handleDeleteFolder(e, id, name);
+                    maybeCloseSidebar();
+                  }}
+                  onShareFolder={folder => {
+                    setSharingFolderId(folder.id);
+                    maybeCloseSidebar();
+                  }}
+                  onRenameFolder={folder => {
+                    handleRenameFolder(folder);
+                    maybeCloseSidebar();
+                  }}
+                  onRenameNote={note => {
+                    handleRenameNote(note);
+                    maybeCloseSidebar();
+                  }}
                   deleteNoteId={deleteNoteId}
                   deleteNotePending={deleteNotePending}
                   editRestricted={editRestricted}
                   createRestricted={createRestricted}
                   shareRestricted={shareRestricted}
-                  onAddSubfolder={onAddSubfolder}
-                  onDeleteFolder={handleDeleteFolder}
-                  onShareFolder={(f: Folder) => setSharingFolderId(f.id)}
                   updateNoteMutation={updateNoteMutation}
                   setExpandedFolders={setExpandedFolders}
                   ancestorIds={[]}
@@ -964,9 +1058,19 @@ export const SidebarContent = React.memo(function SidebarContent({
                   key={note.id}
                   note={note}
                   isSelected={selectedId === note.id}
-                  onSelect={onSelectNote}
-                  onShare={onShareNote!}
-                  onDelete={onDeleteNote}
+                  onSelect={onSelectNoteWrapped}
+                  onShare={note => {
+                    onShareNote?.(note);
+                    maybeCloseSidebar();
+                  }}
+                  onDelete={id => {
+                    onDeleteNote(id);
+                    maybeCloseSidebar();
+                  }}
+                  onRename={note => {
+                    handleRenameNote(note);
+                    maybeCloseSidebar();
+                  }}
                   isDeletePending={
                     deleteNoteId === note.id && deleteNotePending
                   }
@@ -1004,11 +1108,12 @@ export const SidebarContent = React.memo(function SidebarContent({
     updateNoteMutation,
     toggleFolder,
     handleDeleteFolder,
+    updateFolderMutation,
   ]);
 
   if (isLoading) {
     return (
-      <div className="flex h-full flex-col">
+      <div className="hidden h-full flex-col md:flex">
         <div className="min-w-0 shrink-0 px-3 py-2">
           <div className="flex items-center justify-between">
             <div className="flex h-8 items-center gap-2">
@@ -1058,11 +1163,11 @@ export const SidebarContent = React.memo(function SidebarContent({
             <Button
               variant="ghost"
               size="icon"
-              className="text-muted-foreground hover:bg-accent hidden size-7 md:flex"
+              className="text-muted-foreground hover:bg-accent flex size-8 md:size-7"
               onClick={onToggleSidebar}
               title="Collapse Sidebar"
             >
-              <PanelLeftClose className="size-4" />
+              <PanelLeftClose className="size-5 md:size-4" />
             </Button>
           )}
         </div>
@@ -1075,7 +1180,10 @@ export const SidebarContent = React.memo(function SidebarContent({
       <div className="flex shrink-0 flex-col gap-2 px-2">
         <Button
           size="sm"
-          onClick={onCreateNote}
+          onClick={() => {
+            onCreateNote();
+            maybeCloseSidebar();
+          }}
           disabled={limitReached || createRestricted}
           variant="default"
           className="hover:shadow-primary/20 h-9 w-full font-semibold shadow-sm transition-all hover:scale-[1.01]"
@@ -1378,12 +1486,7 @@ export const SidebarContent = React.memo(function SidebarContent({
           }
         }}
       >
-        <DialogContent
-          className={cn(
-            "transition-all duration-500 ease-in-out",
-            sharingFolder?.sharing ? "sm:max-w-[600px]" : "sm:max-w-md"
-          )}
-        >
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Globe className="text-primary h-5 w-5" />
@@ -1405,7 +1508,7 @@ export const SidebarContent = React.memo(function SidebarContent({
                   <div className="flex items-center gap-2">
                     <div className="bg-muted flex min-w-0 flex-1 items-center gap-2 rounded-md border px-3 py-2">
                       <Globe className="text-muted-foreground h-4 w-4 shrink-0" />
-                      <div className="line-clamp-1 max-w-full truncate text-sm">
+                      <div className="line-clamp-1 max-w-full text-sm break-all">
                         {typeof window !== "undefined"
                           ? `${window.location.origin}/s/f/${sharingFolder.sharing.token}`
                           : ""}
@@ -1518,40 +1621,177 @@ export const SidebarContent = React.memo(function SidebarContent({
                     </SelectContent>
                   </Select>
                 </div>
-
-                <Button
-                  className="w-full"
-                  onClick={() => {
-                    if (sharingFolder) {
-                      toggleShareFolderMutation.mutate({
-                        id: sharingFolder.id,
-                        enabled: true,
-                        expires_in:
-                          folderExpiresIn === "never"
-                            ? undefined
-                            : folderExpiresIn,
-                      });
-                    }
-                  }}
-                  disabled={
-                    toggleShareFolderMutation.isPending || shareRestricted
-                  }
-                >
-                  {toggleShareFolderMutation.isPending ? (
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  ) : (
-                    <Globe className="mr-2 h-4 w-4" />
-                  )}
-                  Publish Portfolio
-                </Button>
-                {shareRestricted && (
-                  <p className="text-muted-foreground text-center text-[10px] italic">
-                    Sharing is restricted by your organization administrator.
-                  </p>
-                )}
               </div>
             )}
           </div>
+
+          <DialogFooter className="gap-2">
+            <Button
+              variant="outline"
+              className={sharingFolder?.sharing ? "w-full" : ""}
+              onClick={() => setSharingFolderId(null)}
+              disabled={toggleShareFolderMutation.isPending}
+            >
+              {sharingFolder?.sharing ? "Close" : "Cancel"}
+            </Button>
+            {!sharingFolder?.sharing && (
+              <Button
+                className="font-semibold"
+                onClick={() => {
+                  if (sharingFolder) {
+                    toggleShareFolderMutation.mutate({
+                      id: sharingFolder.id,
+                      enabled: true,
+                      expires_in:
+                        folderExpiresIn === "never"
+                          ? undefined
+                          : folderExpiresIn,
+                    });
+                  }
+                }}
+                disabled={
+                  toggleShareFolderMutation.isPending || shareRestricted
+                }
+              >
+                {toggleShareFolderMutation.isPending ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Publishing...
+                  </>
+                ) : (
+                  <>
+                    <Globe className="mr-2 h-4 w-4" />
+                    Publish Portfolio
+                  </>
+                )}
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      {/* Rename Folder Dialog */}
+      <Dialog open={isRenamingFolder} onOpenChange={setIsRenamingFolder}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Rename Folder</DialogTitle>
+            <DialogDescription>
+              Enter a new name for this folder.
+            </DialogDescription>
+          </DialogHeader>
+          <form
+            onSubmit={async e => {
+              e.preventDefault();
+              if (!renamingFolderId || !renamingFolderName.trim()) return;
+              try {
+                await updateFolderMutation.mutateAsync({
+                  id: renamingFolderId,
+                  data: { name: renamingFolderName.trim() },
+                });
+                toast.success("Folder renamed successfully");
+                setIsRenamingFolder(false);
+                setRenamingFolderId(null);
+                setRenamingFolderName("");
+              } catch (err) {
+                toast.error("Failed to rename folder");
+              }
+            }}
+            className="space-y-4"
+          >
+            <div className="space-y-2">
+              <Label htmlFor="renameFolder">Folder Name</Label>
+              <Input
+                id="renameFolder"
+                value={renamingFolderName}
+                onChange={e => setRenamingFolderName(e.target.value)}
+                placeholder="Enter folder name"
+                autoFocus
+              />
+            </div>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsRenamingFolder(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={updateFolderMutation.isPending}
+                className="font-semibold"
+              >
+                {updateFolderMutation.isPending ? (
+                  <Loader2 className="mr-2 size-4 animate-spin" />
+                ) : (
+                  <Check className="mr-2 size-4" />
+                )}
+                Rename Folder
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Rename Note Dialog */}
+      <Dialog open={isRenamingNote} onOpenChange={setIsRenamingNote}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Rename Note</DialogTitle>
+            <DialogDescription>
+              Enter a new title for this note.
+            </DialogDescription>
+          </DialogHeader>
+          <form
+            onSubmit={async e => {
+              e.preventDefault();
+              if (!renamingNoteId || !renamingNoteTitle.trim()) return;
+              try {
+                await updateNoteMutation.mutateAsync({
+                  id: renamingNoteId,
+                  data: { title: renamingNoteTitle.trim() },
+                });
+                toast.success("Note renamed successfully");
+                setIsRenamingNote(false);
+                setRenamingNoteId(null);
+                setRenamingNoteTitle("");
+              } catch (err) {
+                toast.error("Failed to rename note");
+              }
+            }}
+            className="space-y-4"
+          >
+            <div className="space-y-2">
+              <Label htmlFor="renameNote">Note Title</Label>
+              <Input
+                id="renameNote"
+                value={renamingNoteTitle}
+                onChange={e => setRenamingNoteTitle(e.target.value)}
+                placeholder="Enter note title"
+                autoFocus
+              />
+            </div>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setIsRenamingNote(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="submit"
+                disabled={updateNoteMutation.isPending}
+                className="font-semibold"
+              >
+                {updateNoteMutation.isPending ? (
+                  <Loader2 className="mr-2 size-4 animate-spin" />
+                ) : (
+                  <Check className="mr-2 size-4" />
+                )}
+                Rename Note
+              </Button>
+            </DialogFooter>
+          </form>
         </DialogContent>
       </Dialog>
     </div>

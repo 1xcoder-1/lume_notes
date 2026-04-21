@@ -22,7 +22,12 @@ import {
   TooltipTrigger,
   TooltipContent,
 } from "@workspace/ui/components/tooltip";
-import { SheetContent } from "@workspace/ui/components/sheet";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+} from "@workspace/ui/components/sheet";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -159,7 +164,27 @@ function NotesDashboardContent() {
   const { data: session, status } = useSession();
 
   const user = session?.user as UserType | null;
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isLeftSidebarOpen, setIsLeftSidebarOpen] = useState(false);
+  const [isSheetOpen, setIsSheetOpen] = useState(false);
+
+  const handleLeftSidebarOpenChange = useCallback(
+    (open: boolean) => {
+      setIsLeftSidebarOpen(open);
+      if (open && window.innerWidth < 768) {
+        setIsSidebarOpen(false);
+        setIsSheetOpen(false);
+      }
+    },
+    [setIsSidebarOpen, setIsSheetOpen]
+  );
+
+  // Auto-open sidebar on desktop initial load, keep closed on mobile
+  useEffect(() => {
+    if (window.innerWidth >= 768) {
+      setIsSidebarOpen(true);
+    }
+  }, []);
 
   const {
     data: notesData,
@@ -256,7 +281,6 @@ function NotesDashboardContent() {
   const [showConfetti, setShowConfetti] = useState(false);
 
   const [confettiFading, setConfettiFading] = useState(false);
-  const [isSheetOpen, setIsSheetOpen] = useState(false);
   const { width, height } = useWindowSize();
 
   const confettiTimers = useRef<{ fade: number | null; hide: number | null }>({
@@ -1249,19 +1273,23 @@ function NotesDashboardContent() {
           }}
           className="relative flex min-w-0 flex-1 flex-col"
         >
-          {!isSidebarOpen && !selectedId && (
-            <div className="absolute top-4 left-4 z-40 hidden md:block">
-              <Button
-                variant="outline"
-                size="icon"
-                className="hover:bg-accent size-8 rounded-lg shadow-sm"
-                onClick={() => setIsSidebarOpen(true)}
-                title="Expand Sidebar"
-              >
-                <PanelLeft className="size-4" />
-              </Button>
-            </div>
-          )}
+          {(!isSidebarOpen || (isMobile && isLeftSidebarOpen)) &&
+            !selectedId && (
+              <div className="absolute top-4 left-4 z-40 hidden md:block">
+                <Button
+                  variant="outline"
+                  size="icon"
+                  className="hover:bg-accent size-8 rounded-lg shadow-sm"
+                  onClick={() => {
+                    setIsSidebarOpen(true);
+                    if (isMobile) setIsLeftSidebarOpen(false);
+                  }}
+                  title="Expand Sidebar"
+                >
+                  <PanelLeft className="size-4" />
+                </Button>
+              </div>
+            )}
           <Topbar
             limitReached={limitReached}
             canUpgrade={canUpgrade}
@@ -1269,11 +1297,21 @@ function NotesDashboardContent() {
             tenant={tenant}
             user={user}
             tenantLoading={tenantLoading}
-            onOpenSheet={() => setIsSheetOpen(!isSheetOpen)}
+            onOpenSheet={() => {
+              const newState = !isSheetOpen;
+              setIsSheetOpen(newState);
+              if (newState && isMobile) {
+                setIsLeftSidebarOpen(false);
+                setIsSidebarOpen(false);
+              }
+            }}
             isSheetOpen={isSheetOpen}
             onLogout={handleLogout}
           >
             <SheetContent side="left" className="w-72 gap-0 p-0">
+              <SheetHeader className="sr-only">
+                <SheetTitle>Navigation Menu</SheetTitle>
+              </SheetHeader>
               <SidebarContent
                 notes={notes}
                 notesLoading={notesLoading}
@@ -1333,8 +1371,15 @@ function NotesDashboardContent() {
                   isAdmin={user?.role === "admin"}
                   readOnly={editRestricted}
                   onShowGraph={() => setShowGraphView(true)}
+                  isLeftSidebarOpen={isLeftSidebarOpen}
+                  onLeftSidebarOpenChange={handleLeftSidebarOpenChange}
                   onToggleAppSidebar={
-                    !isSidebarOpen ? () => setIsSidebarOpen(true) : undefined
+                    !isSidebarOpen
+                      ? () => {
+                          setIsSidebarOpen(true);
+                          if (isMobile) setIsLeftSidebarOpen(false);
+                        }
+                      : undefined
                   }
                 />
 

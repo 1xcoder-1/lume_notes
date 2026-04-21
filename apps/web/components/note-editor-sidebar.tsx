@@ -1,4 +1,5 @@
 import React, { useRef } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { cn } from "@workspace/ui/lib/utils";
 import { Button } from "@workspace/ui/components/button";
 import {
@@ -59,10 +60,27 @@ export const NoteEditorSidebar = React.memo(function NoteEditorSidebar({
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   return (
-    <aside
+    <motion.aside
+      initial={false}
+      animate={{
+        x: isLeftSidebarOpen ? 0 : "-100%",
+        opacity: isLeftSidebarOpen ? 1 : 0,
+        width: isLeftSidebarOpen
+          ? typeof window !== "undefined" && window.innerWidth < 1024
+            ? "100%"
+            : 320
+          : 0,
+      }}
+      transition={{
+        type: "spring",
+        stiffness: 300,
+        damping: 30,
+        opacity: { duration: 0.2 },
+      }}
       className={cn(
-        "bg-card/10 hidden flex-col overflow-hidden border-r transition-all duration-300 lg:flex",
-        isLeftSidebarOpen ? "w-80 opacity-100" : "w-0 border-r-0 opacity-0"
+        "bg-background/95 flex flex-col overflow-hidden border-r backdrop-blur-xl",
+        "fixed inset-0 z-[100] h-svh lg:relative lg:inset-auto lg:z-0 lg:h-auto",
+        !isLeftSidebarOpen && "pointer-events-none border-none lg:flex"
       )}
     >
       <div className="flex items-center justify-between border-b p-4">
@@ -262,6 +280,6 @@ export const NoteEditorSidebar = React.memo(function NoteEditorSidebar({
           <Backlinks currentNoteId={note.id} onSelectNote={onSelectNote} />
         </div>
       </ScrollArea>
-    </aside>
+    </motion.aside>
   );
 });

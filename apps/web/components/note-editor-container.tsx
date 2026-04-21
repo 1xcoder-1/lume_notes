@@ -27,6 +27,8 @@ export interface NoteEditorContainerProps {
   readOnly?: boolean;
   onShowGraph?: () => void;
   onToggleAppSidebar?: () => void;
+  isLeftSidebarOpen?: boolean;
+  onLeftSidebarOpenChange?: (open: boolean) => void;
 }
 
 export const NoteEditorContainer = React.memo(function NoteEditorContainer(

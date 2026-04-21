@@ -323,6 +323,16 @@ export const api = {
     });
     if (!response.ok) await handleApiError(response);
   },
+
+  updateFolder: async (id: string, data: { name: string }): Promise<Folder> => {
+    const response = await fetch(`/api/folders/${id}`, {
+      method: "PATCH",
+      headers: getAuthHeaders(),
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) await handleApiError(response);
+    return response.json();
+  },
 };
 
 export const useNotes = (): UseQueryResult<Note[], Error> => {
@@ -376,6 +386,21 @@ export const useDeleteFolder = (): UseMutationResult<void, Error, string> => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: api.deleteFolder,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["folders"] });
+      queryClient.invalidateQueries({ queryKey: ["notes"] });
+    },
+  });
+};
+
+export const useUpdateFolder = (): UseMutationResult<
+  Folder,
+  Error,
+  { id: string; data: { name: string } }
+> => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, data }) => api.updateFolder(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["folders"] });
       queryClient.invalidateQueries({ queryKey: ["notes"] });

@@ -35,3 +35,7 @@ Notion's `/` command is the "magic wand." We should expand ours:
 
 
 
+gcloud run deploy lume-notes `
+  --image us-central1-docker.pkg.dev/lume-notes/lume-repo/lume-notes:latest `
+  --region us-central1 `
+  --update-env-vars="GOOGLE_GENERATIVE_AI_API_KEY=AIzaSyC-pDsD6oiW9qFuieUF_mW4vEipweJFVMw"

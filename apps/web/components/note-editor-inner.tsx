@@ -70,7 +70,9 @@ export interface NoteEditorInnerProps {
   isAdmin: boolean;
   readOnly?: boolean;
   onShowGraph?: () => void;
-  onToggleAppSidebar?: () => void;
+  onToggleAppSidebar?: (force?: boolean) => void;
+  isLeftSidebarOpen: boolean;
+  onLeftSidebarOpenChange: (open: boolean) => void;
 }
 
 // Helper to get consistent color for users based on their ID
@@ -139,6 +141,8 @@ export const NoteEditorInner = React.memo(function NoteEditorInner({
   readOnly = false,
   onShowGraph,
   onToggleAppSidebar,
+  isLeftSidebarOpen,
+  onLeftSidebarOpenChange,
 }: NoteEditorInnerProps) {
   const { data: noteData, isLoading, error } = useNote(noteId);
   const { data: foldersData } = useFolders();
@@ -154,7 +158,6 @@ export const NoteEditorInner = React.memo(function NoteEditorInner({
   const [editorReady, setEditorReady] = useState(false);
   const [contentInitialized, setContentInitialized] = useState(false);
 
-  const [isLeftSidebarOpen, setIsLeftSidebarOpen] = useState(false);
   const [newTag, setNewTag] = useState("");
 
   const isProgrammaticChange = useRef(true);
@@ -912,14 +915,20 @@ export const NoteEditorInner = React.memo(function NoteEditorInner({
       } else if (isMod && code === "Backslash") {
         e.preventDefault();
         if (!readOnly) {
-          setIsLeftSidebarOpen(prev => !prev);
+          const newState = !isLeftSidebarOpen;
+          onLeftSidebarOpenChange(newState);
+          if (newState && window.innerWidth < 768 && onToggleAppSidebar) {
+            // No direct way to close app sidebar if it's already open and we only have onToggle
+            // But we can assume if we're opening this, we want the other closed.
+            // Our parent handles the logic.
+          }
         }
       }
     };
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [isDirty, saving, handleManualSave, readOnly, setIsLeftSidebarOpen]);
+  }, [isDirty, saving, handleManualSave, readOnly, onLeftSidebarOpenChange]);
 
   if (isLoading || !editorReady) {
     return (
@@ -955,7 +964,13 @@ export const NoteEditorInner = React.memo(function NoteEditorInner({
         isDirty={isDirty}
         saving={saving}
         isLeftSidebarOpen={isLeftSidebarOpen}
-        onToggleLeftSidebar={() => setIsLeftSidebarOpen(!isLeftSidebarOpen)}
+        onToggleLeftSidebar={() => {
+          const newState = !isLeftSidebarOpen;
+          onLeftSidebarOpenChange(newState);
+          if (newState && window.innerWidth < 768 && onToggleAppSidebar) {
+            // Parent will handle closing app sidebar
+          }
+        }}
         onInviteUser={onInviteUser}
         onExportNote={onExportNote ? () => onExportNote(note) : undefined}
         onShareNote={onShareNote ? () => onShareNote(note) : undefined}
@@ -971,7 +986,7 @@ export const NoteEditorInner = React.memo(function NoteEditorInner({
         <NoteEditorSidebar
           note={note}
           isLeftSidebarOpen={isLeftSidebarOpen}
-          setIsLeftSidebarOpen={setIsLeftSidebarOpen}
+          setIsLeftSidebarOpen={onLeftSidebarOpenChange}
           newTag={newTag}
           setNewTag={setNewTag}
           handleAddTag={handleAddTag}

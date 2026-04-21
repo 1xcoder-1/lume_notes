@@ -1319,7 +1319,7 @@ export function Toolbar({
               size="sm"
               variant="ghost"
               onClick={onToggleAppSidebar}
-              className="h-8 w-8 p-0"
+              className="hidden h-8 w-8 p-0 md:flex"
               title="Expand App Sidebar"
             >
               <PanelLeft className="text-muted-foreground size-5" />
@@ -1388,71 +1388,131 @@ export function Toolbar({
         </div>
       </div>
       <div className="flex items-center gap-2">
-        {onInviteUser && (
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={onInviteUser}
-            className="h-8 w-8 shrink-0 border-white/60 bg-transparent p-0 text-white transition-colors hover:border-white hover:bg-white/10"
-            title="Invite People"
-            disabled={readOnly}
-          >
-            <UserPlus className="size-4" />
-          </Button>
-        )}
-        {onShareNote && (
-          <Tooltip>
-            <TooltipTrigger asChild>
+        <div className="flex items-center gap-1.5 md:gap-2">
+          {/* Desktop Actions */}
+          <div className="hidden items-center gap-1.5 md:flex md:gap-2">
+            {onInviteUser && (
               <Button
                 size="sm"
                 variant="outline"
-                onClick={() => onShareNote(editor.getHTML())}
-                className="h-8 w-8 shrink-0 p-0"
-                disabled={readOnly || !canShare}
+                onClick={onInviteUser}
+                className="h-8 w-8 shrink-0 border-white/60 bg-transparent p-0 text-white transition-colors hover:border-white hover:bg-white/10"
+                title="Invite People"
+                disabled={readOnly}
               >
-                <Share2 className="size-4" />
+                <UserPlus className="size-4" />
               </Button>
-            </TooltipTrigger>
-            <TooltipContent>
-              {!canShare
-                ? "Sharing disabled by organization admin"
-                : "Share & Publish"}
-            </TooltipContent>
-          </Tooltip>
-        )}
-        {noteId && (
-          <Tooltip>
-            <TooltipTrigger asChild>
+            )}
+            {onShareNote && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => onShareNote(editor.getHTML())}
+                    className="h-8 w-8 shrink-0 p-0"
+                    disabled={readOnly || !canShare}
+                  >
+                    <Share2 className="size-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {!canShare
+                    ? "Sharing disabled by organization admin"
+                    : "Share & Publish"}
+                </TooltipContent>
+              </Tooltip>
+            )}
+            {noteId && (
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setIsHistoryOpen(true)}
+                    className="h-8 w-8 shrink-0 p-0"
+                  >
+                    <History className="size-4" />
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent>Version History</TooltipContent>
+              </Tooltip>
+            )}
+            {onExportNote && (
               <Button
                 size="sm"
                 variant="outline"
-                onClick={() => setIsHistoryOpen(true)}
+                onClick={() => onExportNote(editor.getHTML())}
                 className="h-8 w-8 shrink-0 p-0"
+                title="Export Note"
               >
-                <History className="size-4" />
+                <Download className="size-4" />
               </Button>
-            </TooltipTrigger>
-            <TooltipContent>Version History</TooltipContent>
-          </Tooltip>
-        )}
-        {onExportNote && (
-          <Button
-            size="sm"
-            variant="outline"
-            onClick={() => onExportNote(editor.getHTML())}
-            className="h-8 w-8 shrink-0 p-0"
-            title="Export Note"
-          >
-            <Download className="size-4" />
-          </Button>
-        )}
+            )}
+          </div>
+
+          {/* Mobile Actions Dropdown */}
+          <div className="md:hidden">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-8 w-8 shrink-0 border-white/60 bg-transparent p-0 text-white"
+                >
+                  <MoreHorizontal className="size-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                {onInviteUser && (
+                  <DropdownMenuItem
+                    onClick={onInviteUser}
+                    disabled={readOnly}
+                    className="flex items-center gap-2"
+                  >
+                    <UserPlus className="size-4" />
+                    <span>Invite People</span>
+                  </DropdownMenuItem>
+                )}
+                {onShareNote && (
+                  <DropdownMenuItem
+                    onClick={() => onShareNote(editor.getHTML())}
+                    disabled={readOnly || !canShare}
+                    className="flex items-center gap-2"
+                  >
+                    <Share2 className="size-4" />
+                    <span>Share & Publish</span>
+                  </DropdownMenuItem>
+                )}
+                {noteId && (
+                  <DropdownMenuItem
+                    onClick={() => setIsHistoryOpen(true)}
+                    className="flex items-center gap-2"
+                  >
+                    <History className="size-4" />
+                    <span>Version History</span>
+                  </DropdownMenuItem>
+                )}
+                {onExportNote && (
+                  <DropdownMenuItem
+                    onClick={() => onExportNote(editor.getHTML())}
+                    className="flex items-center gap-2"
+                  >
+                    <Download className="size-4" />
+                    <span>Export Note</span>
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+        </div>
         <div className="flex flex-col items-stretch">
           <Button
             size="sm"
             onClick={onSave}
             disabled={disabled || saving || (!isDirty && !saving)}
             className={cn(
-              "group relative h-8 min-w-[84px] shrink-0 overflow-hidden rounded-lg font-semibold transition-all duration-300",
+              "group relative h-8 min-w-[40px] shrink-0 overflow-hidden rounded-lg font-semibold transition-all duration-300 md:min-w-[84px]",
               isDirty
                 ? "bg-primary text-primary-foreground shadow-md hover:shadow-[0_0_15px_rgba(var(--primary),0.4)]"
                 : "border-border/60 text-muted-foreground bg-transparent"
@@ -1467,8 +1527,10 @@ export function Toolbar({
                   exit={{ opacity: 0, y: -10 }}
                   className="flex items-center justify-center gap-2"
                 >
-                  <Loader2 className="size-3 animate-spin" />
-                  <span className="text-[11px] tracking-tight">Saving...</span>
+                  <Loader2 className="size-3.5 animate-spin" />
+                  <span className="hidden text-[11px] tracking-tight md:inline">
+                    Saving...
+                  </span>
                 </motion.div>
               ) : isDirty ? (
                 <motion.div
@@ -1479,7 +1541,9 @@ export function Toolbar({
                   className="flex items-center justify-center gap-1.5"
                 >
                   <Save className="size-3.5" />
-                  <span className="text-[11px] tracking-tight">Save</span>
+                  <span className="hidden text-[11px] tracking-tight md:inline">
+                    Save
+                  </span>
                 </motion.div>
               ) : (
                 <motion.div
@@ -1489,7 +1553,9 @@ export function Toolbar({
                   className="flex items-center justify-center gap-1.5"
                 >
                   <Check className="size-3.5 text-emerald-500" />
-                  <span className="text-[11px] tracking-tight">Saved</span>
+                  <span className="hidden text-[11px] tracking-tight md:inline">
+                    Saved
+                  </span>
                 </motion.div>
               )}
             </AnimatePresence>
